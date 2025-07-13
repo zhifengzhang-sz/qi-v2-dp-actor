@@ -1,0 +1,155 @@
+cabal-version: 3.6
+name: qi-dp-actor
+version: 4.0.0
+synopsis: QiCore v4.0 Data Processing Actors - DSL and Market Data System
+description:
+  Market data DSL and actor system built on QiCore v4.0 foundation.
+  Implements language-agnostic market data contracts with cryptocurrency
+  data sources and streaming capabilities.
+
+license: MIT
+author: Qi Platform  
+maintainer: qi@platform.com
+category: Finance, Cryptocurrency, Data
+build-type: Simple
+tested-with: GHC ==9.10.1
+
+-- Modern Haskell language settings
+common shared-properties
+  default-language: GHC2024
+  default-extensions:
+    -- GHC2024 includes: DataKinds, DerivingStrategies, DisambiguateRecordFields,
+    -- ExplicitNamespaces, GADTs, LambdaCase, RoleAnnotations
+    
+    -- Additional modern extensions
+    OverloadedStrings
+    OverloadedRecordDot
+    DeriveGeneric
+    DeriveAnyClass
+    StrictData
+    ImportQualifiedPost
+    BlockArguments
+    TypeAbstractions
+    LinearTypes
+    
+  ghc-options:
+    -Wall
+    -Wcompat
+    -Widentities
+    -Wincomplete-record-updates
+    -Wincomplete-uni-patterns
+    -Wmissing-export-lists
+    -Wmissing-home-modules
+    -Wpartial-fields
+    -Wredundant-constraints
+    -Wunused-packages
+
+-- Market data DSL with mathematical combinators
+library qi-dp-dsl
+  import: shared-properties
+  exposed-modules:
+    Qi.DP.DSL.Actor
+    Qi.DP.DSL.Reader
+    Qi.DP.DSL.Writer
+    Qi.DP.DSL.Combinator
+    Qi.DP.DSL.Types
+  hs-source-dirs: src/qi/dp/dsl
+  build-depends:
+    base >= 4.19 && < 5,
+    qi-qicore:qi-base,
+    qi-qicore:qi-core,
+    text ^>= 2.1,
+    containers ^>= 0.7,
+    stm ^>= 2.5,
+    time ^>= 1.12,
+    aeson ^>= 2.2
+
+-- Market data types and crypto actors  
+library qi-dp-market
+  import: shared-properties
+  exposed-modules:
+    Qi.DP.Market.Types
+    Qi.DP.Market.Crypto.TwelveData
+    Qi.DP.Market.Crypto.Binance
+    Qi.DP.Market.Crypto.CoinGecko
+  hs-source-dirs: src/qi/dp/market
+  build-depends:
+    base,
+    qi-qicore:qi-base,
+    qi-qicore:qi-core,
+    qi-dp-dsl,
+    text,
+    containers,
+    stm,
+    time,
+    aeson,
+    http-client ^>= 0.7,
+    http-types ^>= 0.12,
+    wreq ^>= 0.5
+
+-- MCP server with actor composition
+library qi-mcp-server
+  import: shared-properties
+  exposed-modules:
+    Qi.MCP.Server
+    Qi.MCP.Client
+    Qi.MCP.Types
+    Qi.MCP.Tools
+  hs-source-dirs: src/qi/mcp
+  build-depends:
+    base,
+    qi-qicore:qi-base,
+    qi-qicore:qi-core,
+    qi-dp-dsl,
+    qi-dp-market,
+    text,
+    containers,
+    stm,
+    time,
+    aeson,
+    servant ^>= 0.20,
+    servant-server ^>= 0.20,
+    warp ^>= 3.3,
+    http-client,
+    http-types
+
+-- Main MCP server executable
+executable qi-dp-actor-server
+  import: shared-properties
+  main-is: Main.hs
+  hs-source-dirs: app
+  build-depends:
+    base,
+    qi-qicore:qi-base,
+    qi-qicore:qi-core,
+    qi-dp-dsl,
+    qi-dp-market,
+    qi-mcp-server,
+    text
+  ghc-options:
+    -threaded
+    -rtsopts
+    -with-rtsopts=-N
+
+-- Comprehensive test suite
+test-suite qi-dp-actor-test
+  import: shared-properties
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  hs-source-dirs: test
+  build-depends:
+    base,
+    qi-qicore:qi-base,
+    qi-qicore:qi-core,
+    qi-dp-dsl,
+    qi-dp-market,
+    qi-mcp-server,
+    hspec ^>= 2.11,
+    QuickCheck ^>= 2.14,
+    tasty ^>= 1.5,
+    tasty-hspec ^>= 1.2,
+    tasty-quickcheck ^>= 0.10
+  ghc-options:
+    -threaded
+    -rtsopts
+    -with-rtsopts=-N

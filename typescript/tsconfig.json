@@ -1,0 +1,82 @@
+{
+  "compilerOptions": {
+    // Modern TypeScript target and module system  
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM"],
+    
+    // Strict type checking for financial data safety
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "noPropertyAccessFromIndexSignature": true,
+    
+    // Advanced type features for DSL implementation
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "useUnknownInCatchVariables": true,
+    
+    // Output configuration
+    "outDir": "./dist",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "removeComments": false,
+    "importHelpers": true,
+    
+    // Module resolution
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    
+    // Path mapping for clean DSL imports
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@/dsl/*": ["src/dsl/*"],
+      "@/market/*": ["src/market/*"],
+      "@/mcp/*": ["src/mcp/*"],
+      "@/analytics/*": ["src/analytics/*"],
+      "@/functional/*": ["src/functional/*"],
+      "@/performance/*": ["src/performance/*"],
+      "@/testing/*": ["src/testing/*"],
+      "@/tests/*": ["tests/*"]
+    },
+    
+    // Skip lib checking for faster builds
+    "skipLibCheck": true,
+    
+    // Emit configuration
+    "noEmitOnError": true,
+    "preserveConstEnums": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  },
+  "include": [
+    "src/**/*",
+    "tests/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist", 
+    "docs",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ],
+  "ts-node": {
+    "esm": true,
+    "swc": true
+  },
+  "references": [
+    {
+      "path": "../qi-v2-qicore/typescript"
+    }
+  ]
+}
