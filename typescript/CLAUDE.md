@@ -10,29 +10,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture Overview
 
-**Project**: QiCore Data Processing Actors TypeScript project (@qi/dp-actor v0.1.0) implementing market data DSL with FIX Protocol 4.4 compliance. Uses lib/src/ structure, depends on @qi workspace from qi-v2-qicore, has comprehensive usage guides in docs/impl/, and context-continuation-protocol.md active.
+**Project**: QiCore Data Processing Actors TypeScript project (@qi/dp-actor v0.1.0) implementing market data DSL with FIX Protocol 4.4 compliance. **ARCHITECTURAL RESTRUCTURING COMPLETED 2025-07-20**: Clean separation between DSL vocabulary and implementation utilities. Git state: commit 764560b, tags v-0.2.1 and ts-0.2.0.
 
 ### Project Structure
 
 ```
 typescript/
 ├── lib/src/           # Source code
-│   └── dsl/           # DSL implementation
+│   ├── dsl/           # DSL vocabulary (pure FIX Protocol types)
+│   └── utils/         # Implementation utilities
 ├── lib/tests/         # Test suite
-│   └── dsl/           # DSL tests
+│   ├── dsl/           # DSL tests
+│   └── utils/         # Utils tests
 ├── docs/              # Documentation
 ├── scripts/           # Utility scripts
 └── vitest.config.ts   # Test configuration
 ```
 
-### Core DSL Components
+### Architecture: DSL = Vocabulary, Utils = Implementation
 
-1. **Foundation** (`lib/src/dsl/foundation.ts`): QiCore integration and error handling
-2. **Types** (`lib/src/dsl/types.ts`): Core data types and support interfaces
-3. **Market Data** (`lib/src/dsl/market-data.ts`): FIX Protocol compliant market data types
-4. **Operations** (`lib/src/dsl/operations.ts`): Reader/Writer interface definitions
-5. **Validation** (`lib/src/dsl/validation.ts`): Runtime type guards and validation
-6. **Index** (`lib/src/dsl/index.ts`): Main export module
+**DSL Layer** (`lib/src/dsl/`) - Pure FIX Protocol 4.4 vocabulary:
+1. **Foundation** (`foundation.ts`): QiCore integration and error handling
+2. **Types** (`types.ts`): Core data types and support interfaces
+3. **Market Data** (`market-data.ts`): CoreMarketData = Price | Level1 | OHLCV | MarketDepth
+4. **Operations** (`operations.ts`): Reader/Writer interface definitions
+5. **Index** (`index.ts`): Clean exports of vocabulary only
+
+**Utils Layer** (`lib/src/utils/`) - Implementation concerns:
+1. **Analytics** (`marketdata-analytics.ts`): Business intelligence derived from market data
+2. **Validation** (`market-data-validation.ts`): Runtime type guards and validation
+3. **Factories** (`market-data-factories.ts`): Safe object creation with validation
+4. **Precision** (`market-data-precision.ts`): Financial arithmetic using decimal.js
 
 ## Development Commands
 
@@ -94,18 +102,31 @@ if (result.tag === 'success') {
 }
 ```
 
-### Pure Data Types
+### Clean Architecture Separation
 
-The DSL uses **pure data types and interfaces** - no classes or factories:
+**DSL Layer**: Pure vocabulary - contains only FIX Protocol 4.4 compliant data types:
 
 ```typescript
+// CoreMarketData union (cleaned) - only core FIX types
+type CoreMarketData = Price | Level1 | OHLCV | MarketDepth;
+
 // Market data wrapper
 interface MarketData<T extends CoreMarketData> {
   context: DataContext;  // WHO/WHERE/WHAT identification
   coreData: T;          // PURE FIX Protocol data
 }
+```
 
-// Type guards for runtime validation
+**Utils Layer**: Implementation concerns - validation, factories, analytics:
+
+```typescript
+// Analytics as business intelligence derived FROM market data
+interface AnalyticsMarketData {
+  context: DataContext;
+  coreData: MarketAnalytics;  // Business intelligence, not core market data
+}
+
+// Type guards in utils (not DSL)
 const isValidPrice = (obj: unknown): obj is Price => { /* validation logic */ }
 ```
 
@@ -176,21 +197,36 @@ MarketData = DataContext + CoreMarketData
 - All timestamps must be valid Date objects
 - Type guards provide runtime validation
 
-### Validation Patterns
+### Architectural Principles
+
+**Clean Separation**: DSL never imports from utils - maintains proper dependency hierarchy:
+
 ```typescript
-// Type guard pattern
+// ✅ CORRECT: DSL defines vocabulary
+export type CoreMarketData = Price | Level1 | OHLCV | MarketDepth;
+
+// ✅ CORRECT: Utils implement validation (import from DSL)
+import type { Price } from '../dsl/market-data.js';
 export const isValidPrice = (obj: unknown): obj is Price => {
   return obj != null &&
     typeof obj === 'object' &&
     'timestamp' in obj &&
     'price' in obj &&
-    'size' in obj &&
-    obj.timestamp instanceof Date &&
-    typeof obj.price === 'number' &&
-    obj.price > 0 &&
-    Number.isFinite(obj.price) &&
-    typeof obj.size === 'number' &&
-    obj.size > 0 &&
-    Number.isFinite(obj.size);
+    // ... validation logic
 };
+
+// ❌ INCORRECT: DSL importing from utils creates circular dependency
+```
+
+**Analytics Separation**: Business intelligence derived FROM market data, not part of vocabulary:
+
+```typescript
+// ✅ CORRECT: Analytics in utils as derived data
+interface MarketAnalytics {
+  totalMarketCap: number;
+  dominanceMetrics: DominanceMetrics;
+  // ... business intelligence
+}
+
+// ❌ INCORRECT: Analytics in CoreMarketData union pollutes FIX vocabulary
 ```
