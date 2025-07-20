@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "ignore": ["**/dist/**", "**/node_modules/**", "**/docs/api/**"]
+    "ignore": ["**/dist/**", "**/node_modules/**", "**/docs/api/**", "**/coverage/**"]
   },
   "formatter": {
     "enabled": true,

@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
-    // Modern TypeScript target and module system  
+    // Modern TypeScript target and module system
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
     "lib": ["ES2022", "DOM"],
-    
+
     // Strict type checking for financial data safety
     "strict": true,
     "exactOptionalPropertyTypes": true,
@@ -13,7 +13,7 @@
     "noImplicitOverride": true,
     "noUncheckedIndexedAccess": true,
     "noPropertyAccessFromIndexSignature": true,
-    
+
     // Advanced type features for DSL implementation
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
@@ -21,7 +21,7 @@
     "noImplicitAny": true,
     "noImplicitThis": true,
     "useUnknownInCatchVariables": true,
-    
+
     // Output configuration
     "outDir": "./dist",
     "declaration": true,
@@ -29,54 +29,45 @@
     "sourceMap": true,
     "removeComments": false,
     "importHelpers": true,
-    
+
     // Module resolution
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    
-    // Path mapping for clean DSL imports
+
+    // Path mapping for QiCore namespace
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@/dsl/*": ["src/dsl/*"],
-      "@/market/*": ["src/market/*"],
-      "@/mcp/*": ["src/mcp/*"],
-      "@/analytics/*": ["src/analytics/*"],
-      "@/functional/*": ["src/functional/*"],
-      "@/performance/*": ["src/performance/*"],
-      "@/testing/*": ["src/testing/*"],
-      "@/tests/*": ["tests/*"]
+      "@qi/base": ["../../qi-v2-qicore/typescript/dist/base.d.ts"],
+      "@qi/core": ["../../qi-v2-qicore/typescript/dist/core.d.ts"],
+      "@qi/dp/*": ["lib/src/*"],
+      "@qi/dp/actor/*": ["lib/src/*"],
+      "@qi/dp/actor/dsl/*": ["lib/src/dsl/*"],
+      "@qi/dp/actor/market/*": ["lib/src/market/*"],
+      "@qi/dp/actor/mcp/*": ["lib/src/mcp/*"],
+      "@qi/dp/actor/analytics/*": ["lib/src/analytics/*"],
+      "@qi/dp/actor/functional/*": ["lib/src/functional/*"],
+      "@qi/dp/actor/performance/*": ["lib/src/performance/*"],
+      "@qi/dp/actor/testing/*": ["lib/src/testing/*"]
     },
-    
+
     // Skip lib checking for faster builds
     "skipLibCheck": true,
-    
+
     // Emit configuration
     "noEmitOnError": true,
     "preserveConstEnums": true,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+
+    // Project references configuration (disabled for build)
+    "composite": false
   },
-  "include": [
-    "src/**/*",
-    "tests/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist", 
-    "docs",
-    "**/*.test.ts",
-    "**/*.spec.ts"
-  ],
+  "include": ["lib/src/**/*"],
+  "exclude": ["node_modules", "dist", "docs", "lib/tests"],
   "ts-node": {
     "esm": true,
     "swc": true
-  },
-  "references": [
-    {
-      "path": "../qi-v2-qicore/typescript"
-    }
-  ]
+  }
 }

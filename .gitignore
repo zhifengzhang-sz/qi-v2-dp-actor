@@ -70,3 +70,11 @@
   # Nix
   result/
 
+  # TypeScript specific
+  bun.lockb
+  .claude/
+
+  # Generated/compiled outputs
+  typescript/dist/
+  typescript/coverage/
+

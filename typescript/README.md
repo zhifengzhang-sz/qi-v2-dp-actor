@@ -4,7 +4,7 @@
 
 ## Overview
 
-This TypeScript implementation provides the complete market data DSL and actor system defined by the QiCore v4.0 contracts. It builds on the QiCore Foundation (`@qi/qicore-foundation`) to implement FIX Protocol-compliant market data processing with cryptocurrency sources, streaming capabilities, and MCP server integration.
+This TypeScript implementation provides the complete market data DSL and actor system defined by the QiCore v4.0 contracts. It builds on the QiCore Foundation (`@qi`) to implement FIX Protocol-compliant market data processing with cryptocurrency sources, streaming capabilities, and MCP server integration.
 
 ## Project Structure
 
@@ -858,7 +858,7 @@ describe('DSL Contract Compliance', () => {
 ## Dependencies
 
 ### Core Dependencies
-- **@qi/qicore-foundation**: ^4.0.0 - Foundation types and infrastructure
+- **@qi**: ^ts-1.0.0 - Foundation types and infrastructure
 - **typescript**: ^5.0.0 - Modern TypeScript features
 - **@types/node**: ^20.0.0 - Node.js type definitions
 
@@ -895,7 +895,7 @@ This TypeScript implementation satisfies **ALL** DSL contracts defined in `../do
 
 ## Related Projects
 
-- **[@qi/qicore-foundation](../qi-v2-qicore/typescript)**: Foundation this project builds on
+- **[@qi](../qi-v2-qicore/typescript)**: Foundation this project builds on
 - **QiCore Applications**: Applications using this DSL for market data processing
 
 ---
