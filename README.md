@@ -4,7 +4,51 @@
 
 ## Overview
 
-QiCore Data Processing Actors implement a language-agnostic market data DSL with cryptocurrency data sources, streaming capabilities, and MCP server integration. Built on the mathematical foundations provided by [qi-v2-qicore](../qi-v2-qicore).
+QiCore Data Processing Actors implement a language-agnostic market data DSL with cryptocurrency data sources, streaming capabilities, and MCP server integration. Built on the mathematical foundations provided by [qi-v2-qicore](https://github.com/zhifengzhang-sz/qi-v2-qicore).
+
+## Prerequisites
+
+This project depends on other QiCore repositories that need to be cloned in the correct directory structure:
+
+### Required Directory Structure
+```
+qi/github/
+├── qi-v2-qicore/          # Foundation library (REQUIRED)
+├── qi-v2-dp-services/     # Docker services (REQUIRED for runtime)
+└── qi-v2-dp-actor/        # This project
+```
+
+### Setup Instructions
+
+1. **Clone the foundation library:**
+   ```bash
+   git clone https://github.com/zhifengzhang-sz/qi-v2-qicore.git
+   ```
+
+2. **Clone the Docker services:**
+   ```bash
+   git clone https://github.com/zhifengzhang-sz/qi-v2-dp-services.git
+   ```
+
+3. **Clone this project:**
+   ```bash
+   git clone https://github.com/zhifengzhang-sz/qi-v2-dp-actor.git
+   ```
+
+4. **Start the Docker services:**
+   ```bash
+   cd qi-v2-dp-services
+   docker-compose up -d
+   ```
+
+5. **Build and run this project:**
+   ```bash
+   cd qi-v2-dp-actor
+   # For TypeScript:
+   cd typescript && bun install && bun run build
+   # For Haskell:
+   cd haskell && nix develop && cabal build
+   ```
 
 ## Architecture
 
@@ -197,8 +241,9 @@ startMCPServer mcpServer 8080
 
 ## Dependencies
 
-### Foundation
-- **[qi-v2-qicore](../qi-v2-qicore)**: Result<T>, QiError, Config, Logger, Cache
+### Foundation Dependencies
+- **[qi-v2-qicore](https://github.com/zhifengzhang-sz/qi-v2-qicore)**: Result<T>, QiError, Config, Logger, Cache
+- **[qi-v2-services](https://github.com/zhifengzhang-sz/qi-v2-services)**: Service layer abstractions and implementations
 
 ### Haskell
 - **HTTP Clients**: wreq, http-client for API integration

@@ -1,3 +1,17 @@
 packages:
   .
   ../../../qi-v2-qicore/haskell
+  -- ../../../qi-v2-services/haskell  -- Uncomment when qi-v2-services is created
+
+-- For production builds, use source-repository-package instead:
+-- source-repository-package
+--   type: git
+--   location: https://github.com/zhifengzhang-sz/qi-v2-qicore.git
+--   tag: v4.0.0
+--   subdir: haskell
+
+-- source-repository-package
+--   type: git
+--   location: https://github.com/zhifengzhang-sz/qi-v2-services.git
+--   tag: v1.0.0
+--   subdir: haskell
