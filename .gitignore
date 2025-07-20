@@ -79,5 +79,3 @@
 # Generated/compiled outputs
 typescript/dist/
 typescript/coverage/
-
-typescript/node_modules/
