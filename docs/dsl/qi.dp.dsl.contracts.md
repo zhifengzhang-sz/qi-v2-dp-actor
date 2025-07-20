@@ -30,7 +30,7 @@ error_categories_used:
 example_signatures:
   - "getCurrentPrice: DataContext → Result<MarketData<Price>>"
   - "writePrice: MarketData<Price> → Result<Void>"
-  - "getMarketAnalytics: Market → Result<MarketData<MarketAnalytics>>"
+  - "getOHLCV: DataContext → Timeframe → Result<MarketData<OHLCV>>"
 ```
 
 ### @qi/core Usage (Required)
@@ -426,11 +426,7 @@ algebraic_specification:
 | | `Level1` | Product | Top-of-book quotes | MDEntryType=0/1 (Bid/Offer) |
 | | `OHLCV` | Product | Time-series aggregated data | Derived from Trade aggregations |
 | | `MarketDepth` | Product | Multi-level order book | Multi-level MDEntryType=0/1 |
-| | `MarketAnalytics` | Product | Market statistics | Derived from FIX data |
 | **Support Types** | `DepthLevel` | Product | Single order book level | FIX price level |
-| | `DominanceMetrics` | Product | Market share percentages | Derived |
-| | `ChangeMetrics` | Product | Period-over-period changes | Derived |
-| | `VolatilityMetrics` | Product | Volatility measures | Derived |
 | | `AssetClass` | Enum | Asset classification | N/A |
 | | `MarketType` | Enum | Market type classification | N/A |
 | | `Side` | Enum | Trade aggressor side | FIX Tag 54 |
@@ -456,6 +452,8 @@ algebraic_specification:
 - **Value**: Simple primitive or value type
 
 ## Core Market Data Types (FIX Protocol Compliant)
+
+The DSL defines four core market data types that map directly to FIX Protocol 4.4 standards. These types represent the fundamental vocabulary of financial market data.
 
 ### 1. Price Data Contract
 
@@ -590,51 +588,6 @@ fix_compliance:
   market_data_entries: "Multiple entries per side, ordered by price level"
 ```
 
-### 5. MarketAnalytics Data Contract
-
-**Purpose**: Aggregate market statistics and derived metrics
-
-```yaml
-MarketAnalytics:
-  # Core analytics fields
-  timestamp: DateTime           # When analytics were calculated
-  totalMarketCap: Decimal      # Total market capitalization
-  totalVolume: Decimal         # Total trading volume (period-specific)
-  instrumentCount: Integer     # Number of active instruments
-  
-  # Derived metrics
-  dominanceMetrics: DominanceMetrics  # Market share percentages
-  changeMetrics: ChangeMetrics        # Period-over-period changes
-  volatilityMetrics: VolatilityMetrics # Market volatility measures
-  
-laws:
-  - "timestamp must be valid ISO 8601 datetime"
-  - "totalMarketCap must be positive decimal number"
-  - "totalVolume must be positive decimal number"
-  - "instrumentCount must be positive integer"
-  - "all percentage values must be between -100 and 100"
-
-DominanceMetrics:
-  topInstrumentShare: Decimal    # Largest instrument market share (%)
-  top5InstrumentShare: Decimal   # Top 5 instruments market share (%)
-  top10InstrumentShare: Decimal  # Top 10 instruments market share (%)
-
-ChangeMetrics:
-  change1h: Decimal             # 1-hour percentage change
-  change24h: Decimal            # 24-hour percentage change  
-  change7d: Decimal             # 7-day percentage change
-  change30d: Decimal            # 30-day percentage change
-
-VolatilityMetrics:
-  volatility24h: Decimal        # 24-hour price volatility (standard deviation)
-  volatility7d: Decimal         # 7-day price volatility
-  volatility30d: Decimal        # 30-day price volatility
-
-fix_compliance:
-  derived_from: "Aggregations of FIX market data entries"
-  not_directly_mapped: "Analytics are computed from core FIX data"
-  industry_standard: "Standard market analytics calculations"
-```
 
 ## Support Types
 
@@ -910,14 +863,6 @@ MarketDataReader:
         - "respects data availability limits"
         - "each OHLCV complies with aggregation standards"
     
-    getMarketAnalytics:
-      signature: "Market → Result<MarketData<MarketAnalytics>>"
-      behavior: "Retrieve market-wide analytics"
-      laws:
-        - "returns MarketData with market context and analytics"
-        - "Market parameter specifies which market (CRYPTO, EQUITY, etc.)"
-        - "analytics derived from underlying FIX data"
-        - "failure if market analytics unavailable"
 
 universal_laws:
   - "all operations return Result<MarketData<T>> for error handling"
@@ -1119,14 +1064,6 @@ MarketDataWriter:
         - "atomic: either all succeed or all fail"
         - "maintains chronological order within same context"
     
-    writeAnalytics:
-      signature: "MarketData<MarketAnalytics> → Result<Void>"
-      behavior: "Write market analytics data"
-      laws:
-        - "MarketData must contain market context and analytics"
-        - "analytics derived from underlying FIX data"
-        - "updates current analytics state for market"
-        - "context determines analytics scope and routing"
 
 universal_laws:
   - "all operations return Result<Void> for error handling"
