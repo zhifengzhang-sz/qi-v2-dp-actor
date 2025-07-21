@@ -66,7 +66,7 @@ Compare both documents to identify:
 
 ### Step 4: Generate Documentation Consistency Report
 
-Create a comprehensive report documenting all findings:
+Create a brief report with effective tables matching qi.dp.dsl.md structure:
 
 #### Documentation Consistency Report (`docs/reports/dsl-documentation-consistency.md`)
 
@@ -77,124 +77,62 @@ Generated: [timestamp]
 
 ## Executive Summary
 - **Contract Coverage**: X/Y contracts implemented (Z%)
-- **Foundation Consistency**: ✅/❌ Requirements aligned
-- **FIX Compliance**: X/Y mappings consistent (Z%)
-- **Overall Consistency**: X/Y checks passed (Z%)
+- **Foundation Consistency**: Status 
+- **FIX Compliance**: Status
+- **Overall Consistency**: Rating
 
-## Contract Categories Analysis
+## Part I: Data Analysis
 
-### Context Types
+### Data Context Types
 | Contract | Language-Agnostic | TypeScript Spec | Status | Notes |
 |----------|------------------|-----------------|---------|-------|
 | DataContext | ✅ Defined | ✅ Implemented | ✅ | Complete interface |
-| Market | ✅ Defined | ✅ Implemented | ✅ | Discriminated union |
-| Exchange | ✅ Defined | ✅ Implemented | ✅ | Product type |
-| Instrument | ✅ Defined | ✅ Implemented | ✅ | Product type |
+| Market | ✅ Defined | ✅ Implemented | ✅ | Interface with type/region/segment |
 
-### Core Data Types
+### Data Content Types
 | Contract | Language-Agnostic | TypeScript Spec | Status | Notes |
 |----------|------------------|-----------------|---------|-------|
-| Price | ✅ Defined | ✅ Implemented | ✅ | FIX MDEntryType=2 |
-| Level1 | ✅ Defined | ✅ Implemented | ✅ | FIX MDEntryType=0/1 |
-| OHLCV | ✅ Defined | ✅ Implemented | ✅ | Trade aggregations |
-| MarketDepth | ✅ Defined | ✅ Implemented | ✅ | Multi-level book |
-| MarketAnalytics | ✅ Defined | ✅ Implemented | ✅ | Derived metrics |
+| Price | ✅ Defined | ✅ Implemented | ✅ | FIX compliance documented |
+| Level1 | ✅ Defined | ✅ Implemented | ✅ | Bid/ask with decimal types |
 
-### Operation Interfaces
+## Part II: Contracts Analysis
+
+### Data Context Contracts
+| Contract | Language-Agnostic | TypeScript Spec | Status | Notes |
+|----------|------------------|-----------------|---------|-------|
+| MarketDataContextManager | ✅ Defined | ✅ Implemented | ✅ | Context lifecycle management |
+
+### Data Content Contracts
 | Contract | Language-Agnostic | TypeScript Spec | Status | Notes |
 |----------|------------------|-----------------|---------|-------|
 | MarketDataReader | ✅ Defined | ✅ Implemented | ✅ | All methods present |
 | HistoricalMarketDataReader | ✅ Defined | ✅ Implemented | ✅ | Historical operations |
-| StreamingMarketDataReader | ✅ Defined | ✅ Implemented | ✅ | Real-time subscriptions |
-| MarketDataWriter | ✅ Defined | ✅ Implemented | ✅ | All write operations |
-| StreamingMarketDataWriter | ✅ Defined | ✅ Implemented | ✅ | Stream publishing |
 
 ## Foundation Module Consistency
 
 ### @qi/base Requirements
 - **Language-Agnostic**: Required for Result<T> error handling
-- **TypeScript Spec**: ✅ Correctly specified as required
-- **Usage Examples**: ✅ Proper import and usage patterns
-- **Error Categories**: ✅ Consistent error category definitions
+- **TypeScript Spec**: ✅ Correctly specified
+- **Status**: ✅ FULLY CONSISTENT
 
 ### @qi/core Requirements
-- **Language-Agnostic**: Required for config, logger, cache modules
-- **TypeScript Spec**: ✅ Correctly specified as required (not optional)
-- **Module Paths**: ✅ Specific module paths documented
-- **Usage Examples**: ✅ Comprehensive usage examples provided
-
-## FIX Protocol Compliance Consistency
-
-| Data Type | Language-Agnostic FIX Mapping | TypeScript Documentation | Status |
-|-----------|-------------------------------|--------------------------|---------|
-| Price | MDEntryType=2 (Trade) | ✅ Documented with tags | ✅ |
-| Level1 | MDEntryType=0/1 (Bid/Offer) | ✅ Documented with tags | ✅ |
-| OHLCV | Derived from Trade aggregations | ✅ Documented | ✅ |
-| MarketDepth | Multi-level MDEntryType=0/1 | ✅ Documented | ✅ |
-
-## Missing Elements
-
-### Contracts Not in TypeScript Spec
-- None identified ✅
-
-### TypeScript Elements Not in Contracts
-- Implementation-specific helper functions (acceptable)
-- Factory functions for type creation (acceptable)
-- Validation utilities (acceptable)
-
-### Documentation Gaps
-- None identified ✅
-
-## Consistency Issues
-
-### Critical Issues
-- None identified ✅
-
-### Minor Issues
-- None identified ✅
-
-### Recommendations
-- Documentation is well-aligned ✅
-- Both specifications are comprehensive ✅
-- Foundation module usage is correctly documented ✅
-
-## Verification Results
-
-### Contract Coverage: 100% (26/26)
-- All contracts from language-agnostic spec are documented in TypeScript spec
-- TypeScript spec provides comprehensive implementation details
-- No missing contract implementations identified
-
-### Foundation Module Alignment: ✅ Consistent
-- Both specs correctly specify @qi/core as required (not optional)
-- Module paths and usage are properly documented
-- Error handling patterns are consistent
-
-### FIX Protocol Compliance: 100% (4/4)
-- All FIX Protocol mappings are consistently documented
-- Tag numbers and entry types match between specifications
-- Compliance requirements are clearly stated in both documents
+- **Language-Agnostic**: Required for infrastructure
+- **TypeScript Spec**: ✅ Correctly specified  
+- **Status**: ✅ CONSISTENT
 
 ## Overall Assessment
 
-**Status**: ✅ FULLY CONSISTENT
+**Status**: ✅ EXCELLENT (X% coverage)
 
-The DSL documentation is highly consistent between the language-agnostic contracts and TypeScript specification. Both documents:
-
-- Cover all required contracts comprehensively
-- Correctly specify foundation module requirements  
-- Maintain consistent FIX Protocol compliance documentation
-- Provide clear implementation guidance
+[Brief summary of strengths and any gaps]
 
 ## Action Items
 
-No action items required - documentation is fully consistent.
+### Immediate (Critical)
+- [ ] Item 1
 
-## Next Steps
-
-- Consider adding more usage examples to TypeScript spec (optional enhancement)
-- Maintain this consistency as both documents evolve
-- Verify implementation against these specifications using `/verify-dsl`
+### Short Term (Enhancement)
+- [ ] Item 2
 ```
 
 ### Step 5: Summary and Recommendations

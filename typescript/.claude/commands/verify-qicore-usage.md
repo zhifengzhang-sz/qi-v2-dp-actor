@@ -5,14 +5,14 @@ Verify proper usage of @qi/base and @qi/core patterns throughout the implementat
 ## Usage
 
 - `/verify-qicore-usage` - Verify entire lib/src implementation
-- `/verify-qicore-usage dsl` - Verify lib/src/dsl directory only
-- `/verify-qicore-usage examples` - Verify lib/src/examples directory only
-- `/verify-qicore-usage market` - Verify lib/src/market directory only
+- `/verify-qicore-usage dsl` - Verify lib/src/dsl directory only (should only use @qi/base)
+- `/verify-qicore-usage md` - Verify lib/src/md directory only
+- `/verify-qicore-usage utils` - Verify lib/src/utils directory only
 - `/verify-qicore-usage --tutorial` - Include tutorial pattern references in analysis
 
 ## Instructions
 
-You are tasked with verifying proper usage of @qi/base and @qi/core patterns based on the official qi-v2-qicore tutorials. Use systematic analysis to ensure implementation follows best practices.
+You are tasked with verifying proper usage of @qi/base patterns and ensuring DSL layer only uses @qi/base (no @qi/core dependency). Use systematic analysis to ensure implementation follows modern file-scoped architecture.
 
 ### Step 1: Use Sequential Thinking for Systematic Analysis
 
@@ -69,7 +69,59 @@ For each TypeScript file, verify the following patterns based on qi-v2-qicore tu
 - **No unused imports**: All imported functions are actually used
 - **Type vs value imports**: Proper separation with type imports for Result<T>, QiError
 
-### Step 3: @qi/core Pattern Analysis
+### Step 3: Architectural Pattern Analysis
+
+Verify architectural compliance with new DSL structure and patterns:
+
+#### Namespace Pattern Verification (New Architecture)
+- **Utils Namespace Usage**: Verify proper usage of `DP.Utils.Analytics.*` and `DP.Utils.Precision.*` namespaces
+  ```typescript
+  // ✅ Correct namespace pattern
+  import { DP } from '@qi/dp-actor/utils';
+  const metrics: DP.Utils.Analytics.DominanceMetrics = { /* ... */ };
+  const price = DP.Utils.Precision.FinancialDecimal.create("123.45");
+  
+  // ❌ Direct imports bypassing namespace
+  import { DominanceMetrics } from '@qi/dp-actor/utils/analytics';
+  ```
+- **Layer Separation**: DSL never imports from utils (prevents circular dependencies)
+- **Import Hierarchy**: Verify proper dependency flow: DSL → MD → Utils
+
+#### Decimal Type Verification (Financial Precision)
+- **Decimal Usage**: All financial values must use `decimal` type instead of `number`
+  ```typescript
+  // ✅ Correct financial precision
+  interface Price {
+    price: decimal;        // Decimal string representation
+    size: decimal;         // Decimal string representation
+  }
+  
+  // ❌ Floating-point precision loss
+  interface Price {
+    price: number;         // IEEE 754 floating-point
+    size: number;          // Precision loss risk
+  }
+  ```
+- **Factory Pattern Usage**: Uses smart constructors for validated object creation
+- **Type Consistency**: All numeric types in DSL interfaces use `decimal`
+
+#### Smart Constructor Pattern Verification
+- **Factory Functions**: Uses `createPrice()`, `createLevel1()`, etc. instead of raw object creation
+  ```typescript
+  // ✅ Safe construction with validation
+  const priceResult = createPrice("2023-12-01T12:00:00.000Z", 65000.50, 1.5);
+  
+  // ❌ Raw object creation without validation
+  const price: Price = {
+    timestamp: "2023-12-01T12:00:00.000Z",
+    price: 65000.50,
+    size: 1.5
+  };
+  ```
+- **Result Pattern Integration**: All factory functions return `Result<T>`
+- **Validation Integration**: Factories include comprehensive validation logic
+
+### Step 4: @qi/core Pattern Analysis
 
 Verify @qi/core integration patterns based on tutorials and `docs/impl/qi-core-usage.md`:
 
@@ -114,20 +166,54 @@ Verify @qi/core integration patterns based on tutorials and `docs/impl/qi-core-u
 - **Error propagation**: Uses flatMap() for tool composition chains
 - **Graceful fallback**: Cache failures don't break application (e.g., Redis → memory fallback)
 
-### Step 4: Code Quality Analysis
+### Step 5: Enhanced Anti-Pattern Detection
+
+#### Match Pattern Anti-Patterns (Critical)
+- **Discriminated Union Checking**: Detect usage of `result.tag === 'success'` instead of `match()`
+  ```typescript
+  // ❌ Anti-pattern: Manual discriminated union checking
+  if (result.tag === 'success') {
+    console.log(result.value);
+  } else {
+    console.log(result.error);
+  }
+  
+  // ✅ Correct pattern: Use match() function
+  match(
+    value => console.log(value),
+    error => console.log(error),
+    result
+  );
+  ```
+- **Raw Result Access**: Detect direct `.value` or `.error` access without proper checking
+- **Missing Error Handling**: Operations that don't handle Result<T> properly
+
+#### Factory Anti-Patterns  
+- **Raw Object Creation**: Creating DSL objects without validation
+- **Missing Result Handling**: Not using Result<T> from factory functions
+- **Type Assertion**: Using `as` to bypass factory validation
+
+#### Import Anti-Patterns
+- **Circular Dependencies**: DSL importing from utils
+- **Namespace Bypass**: Direct imports instead of namespace usage
+- **Unused Imports**: Importing functions that aren't used
+
+### Step 6: Code Quality Analysis
 
 #### Architectural Patterns
-- **Separation of concerns**: Proper module organization
+- **Separation of concerns**: Proper module organization with DSL/MD/Utils separation
 - **Functional composition**: Preferred over imperative patterns
 - **Error propagation**: Errors properly bubbled through Result<T> chains
 - **Type safety**: Strong typing throughout, minimal any usage
+- **Namespace compliance**: Proper hierarchical namespace usage
 
 #### Integration Patterns
 - **Library integration**: External libraries (like decimal.js) properly wrapped with Result<T>
 - **Domain modeling**: Business logic properly modeled with types and validation
 - **Workflow composition**: Complex operations properly composed using functional patterns
+- **Smart constructor usage**: Validated object creation through factory functions
 
-### Step 5: Generate Verification Report
+### Step 7: Generate Verification Report
 
 Create a comprehensive report:
 
@@ -141,15 +227,18 @@ Generated: [timestamp]
 ## Executive Summary
 - **@qi/base Compliance**: X/Y patterns correct (Z%)
 - **@qi/core Integration**: X/Y patterns correct (Z%)
+- **Architectural Compliance**: X/Y patterns correct (Z%) - NEW
+- **Anti-Pattern Detection**: X/Y issues found (Z% clean) - NEW
 - **Code Quality**: X/Y checks passed (Z%)
 - **Overall Score**: X/Y (Z%) - [EXCELLENT|GOOD|NEEDS_IMPROVEMENT|POOR]
 
 ## File Analysis Summary
 
-| File | @qi/base Score | @qi/core Score | Issues | Status |
-|------|---------------|---------------|---------|---------|
-| lib/src/dsl/precision.ts | 95% | N/A | 1 minor | ✅ |
-| lib/src/examples/qicore-usage.ts | 85% | 60% | API mismatches | ⚠️ |
+| File | @qi/base Score | @qi/core Score | Arch Score | Anti-Patterns | Status |
+|------|---------------|---------------|------------|---------------|---------|
+| lib/src/dsl/types.ts | 95% | N/A | 100% | 0 | ✅ |
+| lib/src/utils/precision.ts | 85% | N/A | 90% | 2 minor | ⚠️ |
+| lib/src/examples/qicore-usage.ts | 85% | 60% | 75% | 3 issues | ⚠️ |
 
 ## @qi/base Pattern Analysis
 
@@ -157,6 +246,9 @@ Generated: [timestamp]
 - **Functional Composition**: Uses proper flatMap chains for error propagation
 - **Match Usage**: Consistently uses match() instead of discriminated union checking
 - **Custom Error Codes**: Proper use of create() for DSL-specific codes like 'INVALID_PRICE'
+- **Smart Constructor Usage**: Uses factory functions like createPrice() for validated object creation - NEW
+- **Namespace Compliance**: Proper DP.Utils.Analytics.* and DP.Utils.Precision.* usage - NEW
+- **Decimal Type Usage**: All financial values use decimal type for precision - NEW
 - **Structured Logging**: Rich context with exchange, symbol, operation data
 - **Configuration Schema**: Comprehensive Zod validation with environment mapping
 - **Cache Strategy**: Proper cache-aside pattern with performance monitoring
@@ -164,6 +256,10 @@ Generated: [timestamp]
 ### ⚠️ Issues Found
 - **Anti-patterns**: Uses result.tag === checking instead of match() (should reference qi-base-usage.md)
 - **Missing Result<T>**: Functions throw exceptions instead of returning Result<T>
+- **Raw Object Creation**: Creates DSL objects without using factory functions - NEW
+- **Number Type Usage**: Uses number instead of decimal for financial values - NEW
+- **Namespace Bypass**: Direct imports instead of proper DP.Utils.* namespace usage - NEW
+- **Circular Dependencies**: DSL modules importing from utils (architectural violation) - NEW
 - **Console.log usage**: Uses console.log instead of structured logging
 - **Generic error codes**: Uses convenience functions when custom codes needed
 - **Missing context**: Logger calls missing market data context (exchange, symbol)
@@ -192,16 +288,21 @@ Generated: [timestamp]
 ## Specific Recommendations
 
 ### High Priority Fixes
-1. **Replace console.log with structured logging**: Implement createLogger() with market data context
-2. **Fix @qi/base anti-patterns**: Replace result.tag === checking with match() (reference qi-base-usage.md)
-3. **Add Result<T> error handling**: Convert exception-throwing functions to return Result<T>
-4. **Use custom error codes**: Replace generic validationError() with create() for DSL-specific codes
+1. **Fix architectural violations**: Remove DSL imports from utils (prevents circular dependencies) - NEW
+2. **Replace number with decimal**: Update all financial types to use decimal for precision - NEW
+3. **Fix anti-pattern usage**: Replace result.tag === checking with match() (reference qi-base-usage.md)
+4. **Add factory function usage**: Replace raw object creation with createPrice(), createLevel1(), etc. - NEW
+5. **Replace console.log with structured logging**: Implement createLogger() with market data context
+6. **Add Result<T> error handling**: Convert exception-throwing functions to return Result<T>
+7. **Use custom error codes**: Replace generic validationError() with create() for DSL-specific codes
 
 ### Medium Priority Improvements
-1. **Add @qi/core tool integration**: Implement ConfigBuilder with schema validation
-2. **Implement cache strategy**: Add cache-aside pattern for market data performance
-3. **Add tool composition**: Use flatMap() for Config → Logger → Cache initialization
-4. **Enhance error context**: Include exchange, symbol, operation in all error contexts
+1. **Add namespace compliance**: Migrate to DP.Utils.Analytics.* and DP.Utils.Precision.* patterns - NEW
+2. **Add @qi/core tool integration**: Implement ConfigBuilder with schema validation
+3. **Implement cache strategy**: Add cache-aside pattern for market data performance
+4. **Add tool composition**: Use flatMap() for Config → Logger → Cache initialization
+5. **Enhance error context**: Include exchange, symbol, operation in all error contexts
+6. **Add comprehensive factory usage**: Ensure all DSL object creation uses smart constructors - NEW
 
 ### Low Priority Enhancements
 1. **Add performance monitoring**: Implement cache hit rate and logger performance tracking
@@ -269,7 +370,7 @@ Based on qi-v2-qicore tutorials and DSL usage guides:
 [Provide overall assessment based on scores and issues found]
 ```
 
-### Step 6: Analysis Scope
+### Step 8: Analysis Scope
 
 #### Full Implementation Analysis (default)
 - Scan all .ts files in lib/src/
@@ -277,16 +378,18 @@ Based on qi-v2-qicore tutorials and DSL usage guides:
 - Generate complete compliance report
 
 #### Directory-Specific Analysis
-- **DSL Analysis**: Focus on lib/src/dsl/ - verify DSL patterns and data types
+- **DSL Analysis**: Focus on lib/src/dsl/ - verify DSL patterns, decimal types, and architectural purity
+- **MD Analysis**: Focus on lib/src/md/ - verify smart constructor patterns and factory usage - NEW
+- **Utils Analysis**: Focus on lib/src/utils/ - verify namespace compliance and precision patterns - NEW
 - **Examples Analysis**: Focus on lib/src/examples/ - verify tutorial compliance
-- **Market Analysis**: Focus on lib/src/market/ - verify actor implementations
+- **Tests Analysis**: Focus on lib/tests/ - verify proper testing patterns and factory usage - NEW
 
 #### Tutorial Reference Mode (--tutorial flag)
 - Include specific tutorial pattern references
 - Add links to relevant tutorial sections
 - Provide tutorial-based recommendations
 
-### Step 7: Error Handling
+### Step 9: Error Handling
 
 If files are missing or inaccessible:
 - Note missing files in report
@@ -294,13 +397,17 @@ If files are missing or inaccessible:
 - Provide recommendations for missing components
 - Mark incomplete analysis areas clearly
 
-### Step 8: Success Criteria
+### Step 10: Success Criteria
 
 The verification should identify:
 - **Pattern Compliance**: How well code follows @qi patterns
 - **Tutorial Alignment**: Consistency with official tutorial examples
 - **Integration Quality**: How well @qi/base and @qi/core work together
 - **Architectural Soundness**: Overall code quality and organization
+- **Architectural Compliance**: Adherence to DSL/MD/Utils separation - NEW
+- **Anti-Pattern Detection**: Identification of problematic patterns - NEW
+- **Namespace Compliance**: Proper hierarchical namespace usage - NEW
+- **Type Safety**: Decimal vs number usage for financial precision - NEW
 
 ## Expected Outcomes
 
@@ -309,5 +416,9 @@ The verification should identify:
 3. **Actionable Recommendations**: Specific steps to improve compliance
 4. **Best Practice Examples**: Highlight excellent pattern usage
 5. **Tutorial Alignment**: How well implementation matches tutorials
+6. **Architectural Assessment**: DSL/MD/Utils separation compliance - NEW
+7. **Anti-Pattern Report**: Specific problematic patterns with fixes - NEW
+8. **Namespace Analysis**: Hierarchical namespace usage compliance - NEW
+9. **Type Safety Analysis**: Financial precision type compliance - NEW
 
 Remember to use sequential thinking for systematic analysis and provide specific, actionable recommendations based on the official qi-v2-qicore tutorial patterns.
