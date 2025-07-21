@@ -1,267 +1,61 @@
 /**
- * Common constants for market data DSL
- * Provides pre-defined exchanges, timeframes, and depth levels for convenience
+ * DSL constants and enumerations
+ * Common values for market data operations
  */
 
-import type { Exchange, Levels, Timeframe } from "./types.js";
+import type { AssetClass, Levels, MarketType, Timeframe } from "./types.js";
 
-/**
- * Common cryptocurrency and traditional exchanges
- */
-export const EXCHANGES = {
-  // Cryptocurrency Exchanges
-  BINANCE: {
-    id: "BINANCE",
-    name: "Binance",
-    mic: null,
-    timezone: "UTC",
-  } as const satisfies Exchange,
+// Export common constants for convenience - NOT part of namespace structure
 
-  COINBASE: {
-    id: "COINBASE",
-    name: "Coinbase Pro",
-    mic: null,
-    timezone: "America/New_York",
-  } as const satisfies Exchange,
+export const MARKET_TYPES: readonly MarketType[] = [
+  "EQUITY",
+  "CRYPTO",
+  "FOREX",
+  "COMMODITY",
+  "BOND",
+  "DERIVATIVE",
+] as const;
 
-  KRAKEN: {
-    id: "KRAKEN",
-    name: "Kraken Digital Asset Exchange",
-    mic: null,
-    timezone: "UTC",
-  } as const satisfies Exchange,
+export const ASSET_CLASSES: readonly AssetClass[] = [
+  "STOCK",
+  "CRYPTO",
+  "CURRENCY",
+  "COMMODITY",
+  "BOND",
+  "INDEX",
+] as const;
 
-  BITFINEX: {
-    id: "BITFINEX",
-    name: "Bitfinex",
-    mic: null,
-    timezone: "UTC",
-  } as const satisfies Exchange,
+export const TIMEFRAMES: readonly Timeframe[] = [
+  "1s",
+  "5s",
+  "1m",
+  "5m",
+  "15m",
+  "1h",
+  "4h",
+  "1d",
+  "1w",
+  "1M",
+  "1Y",
+] as const;
 
-  BYBIT: {
-    id: "BYBIT",
-    name: "Bybit",
-    mic: null,
-    timezone: "UTC",
-  } as const satisfies Exchange,
+export const DEPTH_LEVELS: readonly Levels[] = [1, 5, 10, 50, 100, 500, 1000] as const;
 
-  // Traditional Exchanges
-  NYSE: {
-    id: "NYSE",
-    name: "New York Stock Exchange",
-    mic: "XNYS",
-    timezone: "America/New_York",
-  } as const satisfies Exchange,
-
-  NASDAQ: {
-    id: "NASDAQ",
-    name: "NASDAQ Stock Market",
-    mic: "XNAS",
-    timezone: "America/New_York",
-  } as const satisfies Exchange,
-
-  LSE: {
-    id: "LSE",
-    name: "London Stock Exchange",
-    mic: "XLON",
-    timezone: "Europe/London",
-  } as const satisfies Exchange,
-
-  TSE: {
-    id: "TSE",
-    name: "Tokyo Stock Exchange",
-    mic: "XTKS",
-    timezone: "Asia/Tokyo",
-  } as const satisfies Exchange,
-
-  EURONEXT: {
-    id: "EURONEXT",
-    name: "Euronext",
-    mic: "XPAR",
-    timezone: "Europe/Paris",
-  } as const satisfies Exchange,
-} as const;
-
-/**
- * Common timeframes for OHLCV data
- */
-export const TIMEFRAMES = {
-  // Seconds
-  ONE_SECOND: "1s",
-  FIVE_SECONDS: "5s",
-  FIFTEEN_SECONDS: "15s",
-  THIRTY_SECONDS: "30s",
-
-  // Minutes
-  ONE_MINUTE: "1m",
-  FIVE_MINUTES: "5m",
-  FIFTEEN_MINUTES: "15m",
-  THIRTY_MINUTES: "30m",
-
-  // Hours
-  ONE_HOUR: "1h",
-  TWO_HOURS: "2h",
-  FOUR_HOURS: "4h",
-  SIX_HOURS: "6h",
-  EIGHT_HOURS: "8h",
-  TWELVE_HOURS: "12h",
-
-  // Days
-  ONE_DAY: "1d",
-  THREE_DAYS: "3d",
-
-  // Weeks
-  ONE_WEEK: "1w",
-  TWO_WEEKS: "2w",
-
-  // Months
-  ONE_MONTH: "1M",
-  THREE_MONTHS: "3M",
-  SIX_MONTHS: "6M",
-
-  // Years
-  ONE_YEAR: "1Y",
-} as const satisfies Record<string, Timeframe>;
-
-/**
- * Common market depth levels
- */
-export const DEPTH_LEVELS = {
-  TOP_1: 1,
-  TOP_5: 5,
-  TOP_10: 10,
-  TOP_20: 20,
-  TOP_50: 50,
-  TOP_100: 100,
-  TOP_200: 200,
-  TOP_500: 500,
-  FULL_BOOK: 1000,
-} as const satisfies Record<string, Levels>;
-
-/**
- * Common market data intervals in milliseconds
- */
+// Common timeframe to milliseconds conversion
 export const INTERVALS_MS = {
-  ONE_SECOND: 1000,
-  ONE_MINUTE: 60000,
-  FIVE_MINUTES: 300000,
-  FIFTEEN_MINUTES: 900000,
-  THIRTY_MINUTES: 1800000,
-  ONE_HOUR: 3600000,
-  FOUR_HOURS: 14400000,
-  ONE_DAY: 86400000,
-  ONE_WEEK: 604800000,
-} as const;
+  "1s": 1000,
+  "5s": 5000,
+  "1m": 60000,
+  "5m": 300000,
+  "15m": 900000,
+  "1h": 3600000,
+  "4h": 14400000,
+  "1d": 86400000,
+  "1w": 604800000,
+  "1M": 2629746000, // Average month
+  "1Y": 31556952000, // Average year
+} as const satisfies Record<Timeframe, number>;
 
-/**
- * Currency codes commonly used in market data
- */
-export const CURRENCIES = {
-  // Fiat Currencies
-  USD: "USD",
-  EUR: "EUR",
-  GBP: "GBP",
-  JPY: "JPY",
-  CHF: "CHF",
-  CAD: "CAD",
-  AUD: "AUD",
-  CNY: "CNY",
-  KRW: "KRW",
-
-  // Cryptocurrencies
-  BTC: "BTC",
-  ETH: "ETH",
-  BNB: "BNB",
-  ADA: "ADA",
-  SOL: "SOL",
-  DOT: "DOT",
-  AVAX: "AVAX",
-  MATIC: "MATIC",
-
-  // Stablecoins
-  USDT: "USDT",
-  USDC: "USDC",
-  DAI: "DAI",
-  BUSD: "BUSD",
-} as const;
-
-/**
- * Common trading pairs for cryptocurrency markets
- */
-export const TRADING_PAIRS = {
-  // Major BTC pairs
-  BTC_USD: "BTC/USD",
-  BTC_USDT: "BTC/USDT",
-  BTC_EUR: "BTC/EUR",
-
-  // Major ETH pairs
-  ETH_USD: "ETH/USD",
-  ETH_USDT: "ETH/USDT",
-  ETH_BTC: "ETH/BTC",
-
-  // Altcoin pairs
-  ADA_USD: "ADA/USD",
-  SOL_USD: "SOL/USD",
-  DOT_USD: "DOT/USD",
-  AVAX_USD: "AVAX/USD",
-} as const;
-
-/**
- * Common asset classes and their descriptions
- */
-export const ASSET_CLASSES = {
-  STOCK: {
-    name: "Stock",
-    description: "Equity securities representing ownership in corporations",
-  },
-  CRYPTO: {
-    name: "Cryptocurrency",
-    description: "Digital assets and cryptocurrencies",
-  },
-  CURRENCY: {
-    name: "Currency",
-    description: "Fiat currencies and foreign exchange pairs",
-  },
-  COMMODITY: {
-    name: "Commodity",
-    description: "Physical goods like metals, energy, and agricultural products",
-  },
-  BOND: {
-    name: "Bond",
-    description: "Fixed-income debt securities",
-  },
-  INDEX: {
-    name: "Index",
-    description: "Market indices and composite securities",
-  },
-} as const;
-
-/**
- * Common market types and their descriptions
- */
-export const MARKET_TYPES = {
-  EQUITY: {
-    name: "Equity",
-    description: "Stock markets and equity trading",
-  },
-  CRYPTO: {
-    name: "Cryptocurrency",
-    description: "Cryptocurrency and digital asset markets",
-  },
-  FOREX: {
-    name: "Foreign Exchange",
-    description: "Currency trading and foreign exchange markets",
-  },
-  COMMODITY: {
-    name: "Commodity",
-    description: "Commodity trading and futures markets",
-  },
-  BOND: {
-    name: "Bond",
-    description: "Fixed-income and debt securities markets",
-  },
-  DERIVATIVE: {
-    name: "Derivative",
-    description: "Options, futures, and other derivative instruments",
-  },
-} as const;
+// NOTE: Concrete exchange, currency, and trading pair data has been moved to utils layer
+// DSL should contain only vocabulary types, not implementation data
+// These concrete arrays belong in utils/exchanges, utils/currencies, utils/trading-pairs modules

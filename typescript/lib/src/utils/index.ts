@@ -5,43 +5,64 @@
  * These utilities are separated from the DSL to maintain clean architectural boundaries.
  */
 
-// Analytics utilities (moved from DSL core to maintain separation of concerns)
+// MD Layer - Smart constructors for DSL types
+export {
+  Price,
+  Level1,
+  OHLCV,
+  MarketDepth,
+  Market,
+  Exchange,
+  Instrument,
+  DataContext,
+  MarketData,
+} from "../md/index.js";
+
+// MD Layer - Convenient factory aliases
+export { Price as createPrice } from "../md/price.js";
+export { Level1 as createLevel1 } from "../md/level1.js";
+export { OHLCV as createOHLCV } from "../md/ohlcv.js";
+export { MarketDepth as createMarketDepth } from "../md/market-depth.js";
+export { MarketData as createMarketData } from "../md/market-data.js";
+
+// Analytics utilities - Business intelligence for market data (MD layer)
 export type {
-  // Analytics data types
-  MarketAnalytics,
+  // Core analytics metrics
   DominanceMetrics,
   ChangeMetrics,
   VolatilityMetrics,
   LiquidityMetrics,
+  MarketAnalytics,
+  // Summary and reporting types
   MarketSummary,
   TrendDirection,
   VolatilityLevel,
   LiquidityLevel,
   DataQuality,
-  // Analytics wrapper type
-  AnalyticsMarketData,
   // Operation interfaces
   MarketAnalyticsCalculator,
   AnalyticsAggregator,
   // Configuration and input types
   AnalyticsConfig,
   AnalyticsInputData,
-} from "./marketdata-analytics.js";
+  // Wrapper types
+  AnalyticsMarketData,
+} from "./md/analytics/index.js";
 
 export {
-  // Validation functions
-  isValidMarketAnalytics,
+  // Analytics validation functions
   isValidDominanceMetrics,
   isValidChangeMetrics,
   isValidVolatilityMetrics,
   isValidLiquidityMetrics,
+  isValidMarketAnalytics,
   isValidMarketSummary,
-  // Utility functions
-  createAnalyticsMarketData,
   isAnalyticsMarketData,
-} from "./marketdata-analytics.js";
+  // Analytics utility functions
+  createAnalyticsMarketData,
+} from "./md/analytics/index.js";
 
-// Financial precision utilities (moved from DSL core to maintain separation of concerns)
+// Precision utilities - Financial arithmetic with decimal.js (MD layer)
 export {
   FinancialDecimal,
   parsePrice,
@@ -52,46 +73,32 @@ export {
   zero,
   one,
   isFinancialDecimal,
-} from "./market-data-precision.js";
+} from "./md/precision/index.js";
 
-// Market data validation utilities (moved from DSL core to maintain separation of concerns)
-export {
-  // Enum validators
-  isValidAssetClass,
-  isValidMarketType,
-  isValidSide,
-  isValidTimeframe,
-  isValidLevels,
-  // Object validators
-  isValidDateRange,
-  isValidMarket,
-  isValidExchange,
-  isValidInstrument,
-  isValidDataContext,
-  isValidContextQuery,
-  isValidDepthLevel,
-  // Market data validators
-  isValidPrice,
-  isValidLevel1,
-  isValidOHLCV,
-  isValidMarketDepth,
-  isValidCoreMarketData,
-  isValidMarketData,
-  // Business logic validators
-  isValidMarketDepthOrdering,
-  isValidOHLCVIntegrity,
-  isValidContextCompatibility,
-  isValidTimestamp,
-} from "./market-data-validation.js";
+// Validation utilities removed - not the responsibility of utils layer
 
-// Market data factory utilities (moved from DSL core to maintain separation of concerns)
+// Error utilities - Market data domain error factories (MD layer)
 export {
-  createPrice,
-  createLevel1,
-  createOHLCV,
-  createMarketDepth,
-  createMarketData,
-  createDataContext,
-  createDepthLevel,
-  createTimestamp,
-} from "./market-data-factories.js";
+  createMarketDataError,
+  createDataSourceError,
+  createMarketDepthError,
+  createStreamingError,
+  createHistoricalDataError,
+  // Error factory functions
+  INVALID_PRICE,
+  INVALID_SIZE,
+  INVALID_TIMESTAMP,
+  SPREAD_TOO_WIDE,
+  RATE_LIMIT_EXCEEDED,
+  SYMBOL_NOT_FOUND,
+  API_KEY_INVALID,
+  MARKET_CLOSED,
+  INSUFFICIENT_DEPTH,
+  INVALID_DEPTH_LEVELS,
+  STREAM_DISCONNECTED,
+  STREAM_BUFFER_OVERFLOW,
+  MAX_RECONNECTS_EXCEEDED,
+  DATE_RANGE_INVALID,
+  DATE_RANGE_TOO_LARGE,
+  DATA_GAPS_DETECTED,
+} from "./md/errors.js";

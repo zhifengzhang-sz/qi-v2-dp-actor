@@ -1,6 +1,6 @@
 {
   "name": "@qi/dp-actor",
-  "version": "0.1.0",
+  "version": "ts-0.2.1",
   "description": "Data Processing Actors - Market data DSL and actor system",
   "type": "module",
   "main": "dist/index.js",
@@ -16,6 +16,16 @@
       "types": "./dist/dsl/index.d.ts",
       "import": "./dist/dsl/index.mjs",
       "require": "./dist/dsl/index.js"
+    },
+    "./md": {
+      "types": "./dist/md/index.d.ts",
+      "import": "./dist/md/index.mjs",
+      "require": "./dist/md/index.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils/index.mjs",
+      "require": "./dist/utils/index.js"
     },
     "./market": {
       "types": "./dist/market/index.d.ts",
@@ -110,6 +120,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
     "@qi": "workspace:../../qi-v2-qicore/typescript",
+    "@vitest/coverage-v8": "1.6.1",
     "ajv": "^8.12.0",
     "ajv-formats": "^2.1.1",
     "axios": "^1.6.0",
@@ -126,7 +137,6 @@
     "@types/express": "^4.17.21",
     "@types/node": "^20.10.0",
     "@types/ws": "^8.5.10",
-    "@vitest/coverage-v8": "^1.0.0",
     "bun-types": "^1.1.0",
     "fast-check": "^3.15.0",
     "rimraf": "^5.0.5",

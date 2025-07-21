@@ -4,15 +4,19 @@
  */
 
 import type { QiError } from "@qi/base";
-import { describe, expect, it } from "vitest";
+import type {
+  DSLError,
+  DataSourceError,
+  HistoricalDataError,
+  MarketDataError,
+  MarketDepthError,
+  StreamingError,
+} from "@qi/dp/dsl";
 import {
   API_KEY_INVALID,
   DATA_GAPS_DETECTED,
   DATE_RANGE_INVALID,
   DATE_RANGE_TOO_LARGE,
-  type DSLError,
-  type DataSourceError,
-  type HistoricalDataError,
   INSUFFICIENT_DEPTH,
   INVALID_DEPTH_LEVELS,
   INVALID_PRICE,
@@ -20,20 +24,18 @@ import {
   INVALID_TIMESTAMP,
   MARKET_CLOSED,
   MAX_RECONNECTS_EXCEEDED,
-  type MarketDataError,
-  type MarketDepthError,
   RATE_LIMIT_EXCEEDED,
   SPREAD_TOO_WIDE,
   STREAM_BUFFER_OVERFLOW,
   STREAM_DISCONNECTED,
   SYMBOL_NOT_FOUND,
-  type StreamingError,
   createDataSourceError,
   createHistoricalDataError,
   createMarketDataError,
   createMarketDepthError,
   createStreamingError,
-} from "../../src/dsl/index.js";
+} from "@qi/dp/utils";
+import { describe, expect, it } from "vitest";
 
 describe("DSL Error Types", () => {
   describe("MarketDataError", () => {

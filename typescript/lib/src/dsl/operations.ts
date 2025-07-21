@@ -16,31 +16,33 @@ import type {
   Timeframe,
 } from "./types.js";
 
+// File-scoped operation interface exports (following DSL specification)
+
 // Subscription handle for streaming operations
 export interface Subscription {
   readonly id: string;
+  readonly context: DataContext;
   readonly isActive: boolean;
-  unsubscribe(): Promise<Result<void>>;
 }
 
 // Stream handles for writing operations
 export interface PriceStream {
-  write(data: MarketData<Price>): Promise<Result<void>>;
+  write(data: Price): Promise<Result<void>>;
   stop(): Promise<Result<void>>;
 }
 
 export interface Level1Stream {
-  write(data: MarketData<Level1>): Promise<Result<void>>;
+  write(data: Level1): Promise<Result<void>>;
   stop(): Promise<Result<void>>;
 }
 
 export interface MarketDepthStream {
-  write(data: MarketData<MarketDepth>): Promise<Result<void>>;
+  write(data: MarketDepth): Promise<Result<void>>;
   stop(): Promise<Result<void>>;
 }
 
 export interface OHLCVStream {
-  write(data: MarketData<OHLCV>): Promise<Result<void>>;
+  write(data: OHLCV): Promise<Result<void>>;
   stop(): Promise<Result<void>>;
 }
 
