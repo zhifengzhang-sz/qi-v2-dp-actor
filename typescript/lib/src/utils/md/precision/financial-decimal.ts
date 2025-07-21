@@ -7,7 +7,7 @@
  * with guaranteed precision.
  */
 
-import { failure, success } from "@qi/base";
+import { failure, flatMap, success } from "@qi/base";
 import type { Result } from "@qi/base";
 import Decimal from "decimal.js";
 import { createMarketDataError } from "../errors.js";
@@ -78,20 +78,16 @@ export class FinancialDecimal {
    * @returns Result<FinancialDecimal> with price validation
    */
   static createPrice(value: string | number | Decimal): Result<FinancialDecimal, any> {
-    const result = FinancialDecimal.create(value);
-    if (result.tag === "failure") {
-      return result;
-    }
-
-    if (!result.value.isPositive() || result.value.isZero()) {
-      return failure(
-        createMarketDataError("INVALID_PRICE", "Price must be positive", "VALIDATION", {
-          value: value,
-        })
-      );
-    }
-
-    return result;
+    return flatMap((result) => {
+      if (!result.isPositive() || result.isZero()) {
+        return failure(
+          createMarketDataError("INVALID_PRICE", "Price must be positive", "VALIDATION", {
+            value: value,
+          })
+        );
+      }
+      return success(result);
+    }, FinancialDecimal.create(value));
   }
 
   /**
@@ -100,20 +96,16 @@ export class FinancialDecimal {
    * @returns Result<FinancialDecimal> with size validation
    */
   static createSize(value: string | number | Decimal): Result<FinancialDecimal, any> {
-    const result = FinancialDecimal.create(value);
-    if (result.tag === "failure") {
-      return result;
-    }
-
-    if (result.value.isNegative()) {
-      return failure(
-        createMarketDataError("INVALID_SIZE", "Size must be non-negative", "VALIDATION", {
-          value: value,
-        })
-      );
-    }
-
-    return result;
+    return flatMap((result) => {
+      if (result.isNegative()) {
+        return failure(
+          createMarketDataError("INVALID_SIZE", "Size must be non-negative", "VALIDATION", {
+            value: value,
+          })
+        );
+      }
+      return success(result);
+    }, FinancialDecimal.create(value));
   }
 
   // Mathematical Operations
@@ -383,48 +375,48 @@ export class FinancialDecimal {
     bid: FinancialDecimal,
     ask: FinancialDecimal
   ): Result<FinancialDecimal, any> {
-    const spreadResult = FinancialDecimal.calculateSpread(bid, ask);
-    if (spreadResult.tag === "failure") {
-      return spreadResult;
-    }
+    return flatMap(
+      (spread) => {
+        try {
+          // Calculate midpoint: (bid + ask) / 2
+          const sum = bid.add(ask);
+          const two = new FinancialDecimal(new Decimal(2));
+          const midpoint = sum.decimal.div(two.decimal);
 
-    try {
-      // Calculate midpoint: (bid + ask) / 2
-      const sum = bid.add(ask);
-      const two = new FinancialDecimal(new Decimal(2));
-      const midpoint = sum.decimal.div(two.decimal);
-
-      if (midpoint.isZero()) {
-        return failure(
-          createMarketDataError(
-            "SPREAD_PERCENTAGE_ZERO_MID",
-            "Cannot calculate spread percentage with zero midpoint",
-            "VALIDATION",
-            {
-              bid: Number(bid.toString()),
-              price: Number(ask.toString()),
-            }
-          )
-        );
-      }
-
-      // Calculate percentage: (spread / midpoint) * 100
-      const percentage = spreadResult.value.decimal.div(midpoint).mul(100);
-      return success(new FinancialDecimal(percentage));
-    } catch (error) {
-      return failure(
-        createMarketDataError(
-          "SPREAD_PERCENTAGE_ERROR",
-          "Spread percentage calculation failed",
-          "VALIDATION",
-          {
-            bid: Number(bid.toString()),
-            price: Number(ask.toString()),
-            error: error instanceof Error ? error.message : String(error),
+          if (midpoint.isZero()) {
+            return failure(
+              createMarketDataError(
+                "SPREAD_PERCENTAGE_ZERO_MID",
+                "Cannot calculate spread percentage with zero midpoint",
+                "VALIDATION",
+                {
+                  bid: Number(bid.toString()),
+                  price: Number(ask.toString()),
+                }
+              )
+            );
           }
-        )
-      );
-    }
+
+          // Calculate percentage: (spread / midpoint) * 100
+          const percentage = spread.decimal.div(midpoint).mul(100);
+          return success(new FinancialDecimal(percentage));
+        } catch (error) {
+          return failure(
+            createMarketDataError(
+              "SPREAD_PERCENTAGE_ERROR",
+              "Spread percentage calculation failed",
+              "VALIDATION",
+              {
+                bid: Number(bid.toString()),
+                price: Number(ask.toString()),
+                error: error instanceof Error ? error.message : String(error),
+              }
+            )
+          );
+        }
+      },
+      FinancialDecimal.calculateSpread(bid, ask)
+    );
   }
 
   /**

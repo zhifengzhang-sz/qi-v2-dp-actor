@@ -4,7 +4,7 @@
  */
 
 import type { Result } from "@qi/base";
-import { create, failure, success } from "@qi/base";
+import { create, failure, flatMap, success } from "@qi/base";
 
 /**
  * Validates ISO 8601 timestamp string
@@ -196,44 +196,47 @@ export const isValidDecimal = (value: string, fieldName: string): Result<string>
  * Validates positive decimal string
  */
 export const isPositiveDecimal = (value: string, fieldName: string): Result<string> => {
-  const decimalResult = isValidDecimal(value, fieldName);
-  if (decimalResult.tag === "failure") {
-    return decimalResult;
-  }
-
-  const numValue = Number(value);
-  if (numValue <= 0) {
-    return failure(
-      create("INVALID_DECIMAL_POSITIVE", `${fieldName} must be positive`, "VALIDATION", {
-        field: fieldName,
-        value,
-      })
-    );
-  }
-
-  return success(value);
+  return flatMap(
+    (validDecimal) => {
+      const numValue = Number(validDecimal);
+      if (numValue <= 0) {
+        return failure(
+          create("INVALID_DECIMAL_POSITIVE", `${fieldName} must be positive`, "VALIDATION", {
+            field: fieldName,
+            value,
+          })
+        );
+      }
+      return success(validDecimal);
+    },
+    isValidDecimal(value, fieldName)
+  );
 };
 
 /**
  * Validates non-negative decimal string
  */
 export const isNonNegativeDecimal = (value: string, fieldName: string): Result<string> => {
-  const decimalResult = isValidDecimal(value, fieldName);
-  if (decimalResult.tag === "failure") {
-    return decimalResult;
-  }
-
-  const numValue = Number(value);
-  if (numValue < 0) {
-    return failure(
-      create("INVALID_DECIMAL_NON_NEGATIVE", `${fieldName} must be non-negative`, "VALIDATION", {
-        field: fieldName,
-        value,
-      })
-    );
-  }
-
-  return success(value);
+  return flatMap(
+    (validDecimal) => {
+      const numValue = Number(validDecimal);
+      if (numValue < 0) {
+        return failure(
+          create(
+            "INVALID_DECIMAL_NON_NEGATIVE",
+            `${fieldName} must be non-negative`,
+            "VALIDATION",
+            {
+              field: fieldName,
+              value,
+            }
+          )
+        );
+      }
+      return success(validDecimal);
+    },
+    isValidDecimal(value, fieldName)
+  );
 };
 
 /**
@@ -273,10 +276,5 @@ export const isOptionalNonEmptyString = (
     return success(undefined);
   }
 
-  const stringResult = isNonEmptyString(value, fieldName);
-  if (stringResult.tag === "failure") {
-    return stringResult;
-  }
-
-  return success(stringResult.value);
+  return flatMap((validString) => success(validString), isNonEmptyString(value, fieldName));
 };

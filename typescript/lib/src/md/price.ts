@@ -44,31 +44,7 @@ export class Price implements DSL.Price {
     tradeId?: string,
     aggressor?: DSL.Side
   ): Result<Price> {
-    // Validate timestamp
-    const timestampResult = isValidTimestamp(timestamp);
-    if (timestampResult.tag === "failure") {
-      return timestampResult;
-    }
-
-    // Validate price
-    const priceResult = isPositiveDecimal(price, "price");
-    if (priceResult.tag === "failure") {
-      return priceResult;
-    }
-
-    // Validate size
-    const sizeResult = isPositiveDecimal(size, "size");
-    if (sizeResult.tag === "failure") {
-      return sizeResult;
-    }
-
-    // Validate optional tradeId
-    const tradeIdResult = isOptionalNonEmptyString(tradeId, "tradeId");
-    if (tradeIdResult.tag === "failure") {
-      return tradeIdResult;
-    }
-
-    // Validate optional aggressor
+    // Validate optional aggressor first (simple check)
     if (aggressor !== undefined && aggressor !== "BUY" && aggressor !== "SELL") {
       return failure(
         create("INVALID_AGGRESSOR", "Aggressor must be BUY or SELL", "VALIDATION", {
@@ -78,14 +54,25 @@ export class Price implements DSL.Price {
       );
     }
 
-    return success(
-      new Price(
-        timestampResult.value,
-        priceResult.value,
-        sizeResult.value,
-        tradeIdResult.value,
-        aggressor
-      )
+    // Chain validation using functional composition
+    return flatMap(
+      (validTimestamp) =>
+        flatMap(
+          (validPrice) =>
+            flatMap(
+              (validSize) =>
+                flatMap(
+                  (validTradeId) =>
+                    success(
+                      new Price(validTimestamp, validPrice, validSize, validTradeId, aggressor)
+                    ),
+                  isOptionalNonEmptyString(tradeId, "tradeId")
+                ),
+              isPositiveDecimal(size, "size")
+            ),
+          isPositiveDecimal(price, "price")
+        ),
+      isValidTimestamp(timestamp)
     );
   }
 
