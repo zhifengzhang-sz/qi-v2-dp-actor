@@ -9,14 +9,14 @@ Prevent context loss and ensure all work builds incrementally on established pat
 ### Every Conversation Start
 
 1. **Memory Check**: `mcp__memory__read_graph` to understand current project state
-2. **Documentation Review**: Read relevant `docs/impl/` files for the question topic
+2. **Documentation Review**: Read relevant `docs/qicore/usage/` files for the question topic
 3. **Task Status**: Check TodoWrite for active tasks and context
 
 ### Before Any @qi/base or @qi/core Response
 
 1. **Check Implementation Guides First**:
-   - `docs/impl/qi-base-usage.md` for all @qi/base questions
-   - `docs/impl/qi-core-usage.md` for all @qi/core questions
+   - `docs/qicore/usage/qi-base-usage.md` for all @qi/base questions
+   - `docs/qicore/usage/qi-core-usage.md` for all @qi/core questions
 2. **Reference Established Patterns**: Don't recreate, build on existing work
 3. **Validate Against Tutorials**: Ensure alignment with qi-v2-qicore patterns
 
@@ -58,7 +58,7 @@ Prevent context loss and ensure all work builds incrementally on established pat
 - Forgetting todo task context
 
 ❌ **Documentation Ignore**:
-- Not referencing docs/impl/ files for @qi questions
+- Not referencing docs/qicore/usage/ files for @qi questions
 - Creating new explanations instead of using established guides
 - Not building on verification command patterns
 

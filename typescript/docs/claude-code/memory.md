@@ -5,8 +5,8 @@
 
   ## @qi Usage Patterns
   Reference implementation guides:
-  • `docs/impl/qi-base-usage.md` - @qi/base Result handling patterns
-  • `docs/impl/qi-core-usage.md` - @qi/core integration patterns
+  • `docs/qicore/usage/qi-base-usage.md` - @qi/base Result handling patterns
+  • `docs/qicore/usage/qi-core-usage.md` - @qi/core integration patterns
 
   ## User Quality Standards
   • Essential facts only, no explanatory text
