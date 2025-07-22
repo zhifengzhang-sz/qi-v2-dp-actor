@@ -124,7 +124,7 @@ describe("Level1 Smart Constructor", () => {
         );
 
         expect(isFailure(result)).toBe(true);
-        expect(getError(result).code).toBe("INVALID_DECIMAL_FORMAT");
+        expect(getError(result).code).toBe("INVALID_DECIMAL_PATTERN");
       });
 
       it("should accept very small positive bid price", () => {
@@ -178,7 +178,7 @@ describe("Level1 Smart Constructor", () => {
         );
 
         expect(isFailure(result)).toBe(true);
-        expect(getError(result).code).toBe("INVALID_DECIMAL_FORMAT");
+        expect(getError(result).code).toBe("INVALID_DECIMAL_PATTERN");
       });
 
       it("should accept very large ask price", () => {
@@ -260,7 +260,7 @@ describe("Level1 Smart Constructor", () => {
         );
 
         expect(isFailure(result)).toBe(true);
-        expect(getError(result).code).toBe("INVALID_DECIMAL_FORMAT");
+        expect(getError(result).code).toBe("INVALID_DECIMAL_PATTERN");
       });
 
       it("should accept very small positive bid size", () => {
@@ -314,7 +314,7 @@ describe("Level1 Smart Constructor", () => {
         );
 
         expect(isFailure(result)).toBe(true);
-        expect(getError(result).code).toBe("INVALID_DECIMAL_FORMAT");
+        expect(getError(result).code).toBe("INVALID_DECIMAL_PATTERN");
       });
 
       it("should accept very large ask size", () => {

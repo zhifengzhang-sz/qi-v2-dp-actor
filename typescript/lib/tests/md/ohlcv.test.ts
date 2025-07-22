@@ -142,7 +142,7 @@ describe("OHLCV Smart Constructor", () => {
         );
 
         expect(isFailure(result)).toBe(true);
-        expect(getError(result).code).toBe("INVALID_DECIMAL_FORMAT");
+        expect(getError(result).code).toBe("INVALID_DECIMAL_PATTERN");
       });
 
       it("should reject zero close price", () => {
@@ -271,7 +271,7 @@ describe("OHLCV Smart Constructor", () => {
         );
 
         expect(isFailure(result)).toBe(true);
-        expect(getError(result).code).toBe("INVALID_DECIMAL_FORMAT");
+        expect(getError(result).code).toBe("INVALID_DECIMAL_PATTERN");
       });
 
       it("should accept very large volume", () => {

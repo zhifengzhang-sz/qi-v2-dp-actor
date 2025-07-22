@@ -91,7 +91,7 @@ describe("Price Smart Constructor", () => {
         const result = Price.create("2025-07-21T12:00:00.000Z", "not-a-number", "1.0");
 
         expect(isFailure(result)).toBe(true);
-        expect(getError(result).code).toBe("INVALID_DECIMAL_FORMAT");
+        expect(getError(result).code).toBe("INVALID_DECIMAL_PATTERN");
       });
 
       it("should reject empty price", () => {
@@ -135,7 +135,7 @@ describe("Price Smart Constructor", () => {
         const result = Price.create("2025-07-21T12:00:00.000Z", "100.00", "invalid");
 
         expect(isFailure(result)).toBe(true);
-        expect(getError(result).code).toBe("INVALID_DECIMAL_FORMAT");
+        expect(getError(result).code).toBe("INVALID_DECIMAL_PATTERN");
       });
 
       it("should accept very small positive size", () => {

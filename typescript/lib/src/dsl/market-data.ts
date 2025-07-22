@@ -3,10 +3,7 @@
  * Implements: docs/dsl/qi.dp.dsl.md Core Data Types
  */
 
-import type { DataContext, DepthLevel, Side } from "./types.js";
-
-// Decimal type for financial precision
-export type decimal = string;
+import type { DataContext, DepthLevel, Side, decimal } from "./types.js";
 
 /**
  * Real-time trade/tick data (FIX MDEntryType=2)
@@ -73,11 +70,4 @@ export interface MarketDepth {
   readonly totalAskSize?: decimal; // Total ask volume
 }
 
-// Union of all core market data types
-export type CoreMarketData = Price | Level1 | OHLCV | MarketDepth;
-
-// Generic wrapper for all market data
-export interface MarketData<T extends CoreMarketData> {
-  readonly context: DataContext;
-  readonly coreData: T;
-}
+// Note: CoreMarketData union type moved to types.ts to avoid circular dependency

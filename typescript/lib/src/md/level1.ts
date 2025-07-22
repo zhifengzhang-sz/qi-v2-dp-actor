@@ -5,7 +5,7 @@
  */
 
 import type { Result } from "@qi/base";
-import { create, failure, success } from "@qi/base";
+import { create, failure, flatMap, success } from "@qi/base";
 import type * as DSL from "../dsl/index.js";
 import { isOptionalNonEmptyString, isPositiveDecimal, isValidTimestamp } from "./validation.js";
 
@@ -57,102 +57,94 @@ export class Level1 implements DSL.Level1 {
     bidTime?: string,
     askTime?: string
   ): Result<Level1> {
-    // Validate timestamp
-    const timestampResult = isValidTimestamp(timestamp);
-    if (timestampResult.tag === "failure") {
-      return timestampResult;
-    }
+    // Helper function for optional timestamp validation
+    const validateOptionalTimestamp = (
+      value: string | undefined,
+      fieldName: string
+    ): Result<string | undefined> => {
+      if (value === undefined) return success(undefined);
 
-    // Validate bid price
-    const bidPriceResult = isPositiveDecimal(bidPrice, "bidPrice");
-    if (bidPriceResult.tag === "failure") {
-      return bidPriceResult;
-    }
-
-    // Validate bid size
-    const bidSizeResult = isPositiveDecimal(bidSize, "bidSize");
-    if (bidSizeResult.tag === "failure") {
-      return bidSizeResult;
-    }
-
-    // Validate ask price
-    const askPriceResult = isPositiveDecimal(askPrice, "askPrice");
-    if (askPriceResult.tag === "failure") {
-      return askPriceResult;
-    }
-
-    // Validate ask size
-    const askSizeResult = isPositiveDecimal(askSize, "askSize");
-    if (askSizeResult.tag === "failure") {
-      return askSizeResult;
-    }
-
-    // Business rule: no crossed market (askPrice >= bidPrice)
-    const bidPriceNum = Number(bidPriceResult.value);
-    const askPriceNum = Number(askPriceResult.value);
-
-    if (askPriceNum < bidPriceNum) {
-      return failure(
-        create(
-          "CROSSED_MARKET",
-          "Ask price must be greater than or equal to bid price",
-          "VALIDATION",
-          {
-            bidPrice: bidPriceResult.value,
-            askPrice: askPriceResult.value,
-            spread: askPriceNum - bidPriceNum,
-          }
-        )
-      );
-    }
-
-    // Validate optional quoteId
-    const quoteIdResult = isOptionalNonEmptyString(quoteId, "quoteId");
-    if (quoteIdResult.tag === "failure") {
-      return quoteIdResult;
-    }
-
-    // Validate optional bid time
-    let validatedBidTime: string | undefined;
-    if (bidTime !== undefined) {
-      const bidTimeResult = isValidTimestamp(bidTime);
-      if (bidTimeResult.tag === "failure") {
+      const result = isValidTimestamp(value);
+      if (result.tag === "failure") {
         return failure(
-          create("INVALID_BID_TIME", "Bid time must be valid ISO 8601 format", "VALIDATION", {
-            value: bidTime,
-            originalError: bidTimeResult.error,
-          })
+          create(
+            `INVALID_${fieldName.toUpperCase()}`,
+            `${fieldName} must be valid ISO 8601 format`,
+            "VALIDATION",
+            {
+              value,
+              originalError: result.error,
+            }
+          )
         );
       }
-      validatedBidTime = bidTimeResult.value;
-    }
+      return success(result.value);
+    };
 
-    // Validate optional ask time
-    let validatedAskTime: string | undefined;
-    if (askTime !== undefined) {
-      const askTimeResult = isValidTimestamp(askTime);
-      if (askTimeResult.tag === "failure") {
-        return failure(
-          create("INVALID_ASK_TIME", "Ask time must be valid ISO 8601 format", "VALIDATION", {
-            value: askTime,
-            originalError: askTimeResult.error,
-          })
-        );
-      }
-      validatedAskTime = askTimeResult.value;
-    }
+    // Chain validation using functional composition
+    return flatMap(
+      (validTimestamp) =>
+        flatMap(
+          (validBidPrice) =>
+            flatMap(
+              (validBidSize) =>
+                flatMap(
+                  (validAskPrice) =>
+                    flatMap(
+                      (validAskSize) =>
+                        flatMap(
+                          (validQuoteId) =>
+                            flatMap(
+                              (validBidTime) =>
+                                flatMap(
+                                  (validAskTime) => {
+                                    // Business rule: no crossed market (askPrice >= bidPrice)
+                                    const bidPriceNum = Number(validBidPrice);
+                                    const askPriceNum = Number(validAskPrice);
 
-    return success(
-      new Level1(
-        timestampResult.value,
-        bidPriceResult.value,
-        bidSizeResult.value,
-        askPriceResult.value,
-        askSizeResult.value,
-        quoteIdResult.value,
-        validatedBidTime,
-        validatedAskTime
-      )
+                                    if (askPriceNum < bidPriceNum) {
+                                      return failure(
+                                        create(
+                                          "CROSSED_MARKET",
+                                          "Ask price must be greater than or equal to bid price",
+                                          "VALIDATION",
+                                          {
+                                            bidPrice: validBidPrice,
+                                            askPrice: validAskPrice,
+                                            spread: askPriceNum - bidPriceNum,
+                                          }
+                                        )
+                                      );
+                                    }
+
+                                    return success(
+                                      new Level1(
+                                        validTimestamp,
+                                        validBidPrice,
+                                        validBidSize,
+                                        validAskPrice,
+                                        validAskSize,
+                                        validQuoteId,
+                                        validBidTime,
+                                        validAskTime
+                                      )
+                                    );
+                                  },
+                                  validateOptionalTimestamp(askTime, "ask time")
+                                ),
+                              validateOptionalTimestamp(bidTime, "bid time")
+                            ),
+                          isOptionalNonEmptyString(quoteId, "quoteId")
+                        ),
+                      isPositiveDecimal(askSize, "askSize")
+                    ),
+                  isPositiveDecimal(askPrice, "askPrice")
+                ),
+              isPositiveDecimal(bidSize, "bidSize")
+            ),
+          isPositiveDecimal(bidPrice, "bidPrice")
+        ),
+      isValidTimestamp(timestamp)
     );
   }
 

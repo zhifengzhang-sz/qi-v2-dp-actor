@@ -714,7 +714,7 @@ describe("MarketDepth Smart Constructor", () => {
       const result = MarketDepth.create("2025-07-21T12:00:00.000Z", invalidBids, validAsks);
 
       expect(isFailure(result)).toBe(true);
-      expect(getError(result).code).toBe("INVALID_DECIMAL_FORMAT");
+      expect(getError(result).code).toBe("INVALID_DECIMAL_PATTERN");
     });
 
     it("should handle invalid decimal format in size", () => {
@@ -722,7 +722,7 @@ describe("MarketDepth Smart Constructor", () => {
       const result = MarketDepth.create("2025-07-21T12:00:00.000Z", invalidBids, validAsks);
 
       expect(isFailure(result)).toBe(true);
-      expect(getError(result).code).toBe("INVALID_DECIMAL_FORMAT");
+      expect(getError(result).code).toBe("INVALID_DECIMAL_PATTERN");
     });
   });
 

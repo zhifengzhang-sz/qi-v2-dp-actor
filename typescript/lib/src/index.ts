@@ -6,20 +6,14 @@
 // Export DSL implementation
 export * from "./dsl/index.js";
 
-// Export utilities (analytics moved here from DSL for architectural separation)
+// Export MD smart constructors
+export * as MD from "./md/index.js";
+
+// Export utilities (analytics and precision)
 export * as Utils from "./utils/index.js";
 
-// TODO: Export market layer when implemented
-// export * from "./market/index.js";
+// Export actor abstractions
+export * as Actors from "./actor/index.js";
 
-// TODO: Export MCP layer when implemented
-// export * from "./mcp/index.js";
-
-// TODO: Export functional utilities when implemented
-// export * from "./functional/index.js";
-
-// TODO: Export performance utilities when implemented
-// export * from "./performance/index.js";
-
-// TODO: Export testing utilities when implemented
-// export * from "./testing/index.js";
+// Export base infrastructure
+export * as Base from "./base/index.js";

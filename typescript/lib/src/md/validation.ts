@@ -168,7 +168,23 @@ export const isValidDecimal = (value: string, fieldName: string): Result<string>
     );
   }
 
-  const parsed = Number(value);
+  // Enhanced validation: Check for valid decimal format before parsing
+  const trimmedValue = value.trim();
+
+  // Check for valid decimal pattern (optional sign, digits, optional decimal point and digits)
+  const decimalPattern = /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/;
+  if (!decimalPattern.test(trimmedValue)) {
+    return failure(
+      create(
+        "INVALID_DECIMAL_PATTERN",
+        `${fieldName} must be a valid decimal format`,
+        "VALIDATION",
+        { field: fieldName, value, pattern: "number format" }
+      )
+    );
+  }
+
+  const parsed = Number(trimmedValue);
   if (Number.isNaN(parsed)) {
     return failure(
       create(
@@ -189,7 +205,23 @@ export const isValidDecimal = (value: string, fieldName: string): Result<string>
     );
   }
 
-  return success(value);
+  // Additional check for extremely large/small numbers that might cause precision issues
+  if (Math.abs(parsed) > Number.MAX_SAFE_INTEGER) {
+    return failure(
+      create(
+        "INVALID_DECIMAL_PRECISION",
+        `${fieldName} exceeds safe precision range`,
+        "VALIDATION",
+        {
+          field: fieldName,
+          value,
+          maxSafeInteger: Number.MAX_SAFE_INTEGER,
+        }
+      )
+    );
+  }
+
+  return success(trimmedValue);
 };
 
 /**

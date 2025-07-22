@@ -152,15 +152,21 @@ export class Instrument implements DSL.Instrument {
   }
 
   /**
-   * Gets the ISIN or throws if not available
-   * @returns ISIN code
-   * @throws Error if ISIN is null
+   * Gets the ISIN with Result<T> pattern
+   * @returns Result<string> with ISIN code or error
    */
-  getIsinOrThrow(): string {
+  getIsin(): Result<string> {
     if (this.isin === null) {
-      throw new Error(`Instrument ${this.symbol} does not have an ISIN`);
+      return failure(
+        create(
+          "ISIN_NOT_AVAILABLE",
+          `Instrument ${this.symbol} does not have an ISIN`,
+          "VALIDATION",
+          { symbol: this.symbol, name: this.name, assetClass: this.assetClass }
+        )
+      );
     }
-    return this.isin;
+    return success(this.isin);
   }
 
   /**

@@ -117,15 +117,19 @@ export class Exchange implements DSL.Exchange {
   }
 
   /**
-   * Gets the MIC code or throws if not available
-   * @returns MIC code
-   * @throws Error if MIC is null
+   * Gets the MIC code with Result<T> pattern
+   * @returns Result<string> with MIC code or error
    */
-  getMicOrThrow(): string {
+  getMic(): Result<string> {
     if (this.mic === null) {
-      throw new Error(`Exchange ${this.id} does not have a MIC code`);
+      return failure(
+        create("MIC_NOT_AVAILABLE", `Exchange ${this.id} does not have a MIC code`, "VALIDATION", {
+          exchangeId: this.id,
+          name: this.name,
+        })
+      );
     }
-    return this.mic;
+    return success(this.mic);
   }
 
   /**

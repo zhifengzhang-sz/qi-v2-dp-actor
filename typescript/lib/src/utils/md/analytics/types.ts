@@ -10,8 +10,12 @@ import type {
   CoreMarketData,
   DataContext,
   DateRange,
+  Level1,
   Market,
   MarketData,
+  MarketDepth,
+  OHLCV,
+  Price,
 } from "../../../dsl/index.js";
 
 // Core Analytics Types
@@ -197,8 +201,13 @@ export interface AnalyticsConfig {
 
 /**
  * Type union for consuming DSL market data
+ * Specifically typed for FIX Protocol 4.4 core data types
  */
-export type AnalyticsInputData = MarketData<any>[] | CoreMarketData[];
+export type AnalyticsInputData =
+  | MarketData<Price>[]
+  | MarketData<Level1>[]
+  | MarketData<OHLCV>[]
+  | MarketData<MarketDepth>[];
 
 // Wrapper Types
 

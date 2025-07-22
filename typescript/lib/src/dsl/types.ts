@@ -3,7 +3,8 @@
  * Implements: docs/dsl/qi.dp.dsl.md Data Context Types
  */
 
-import type { decimal } from "./market-data.js";
+// Decimal type for financial precision
+export type decimal = string;
 
 // Market classification types
 export type MarketType = "EQUITY" | "CRYPTO" | "FOREX" | "COMMODITY" | "BOND" | "DERIVATIVE";
@@ -67,3 +68,17 @@ export interface DateRange {
 export type Timeframe = "1s" | "5s" | "1m" | "5m" | "15m" | "1h" | "4h" | "1d" | "1w" | "1M" | "1Y";
 
 export type Levels = 1 | 5 | 10 | 50 | 100 | 500 | 1000;
+
+// Core market data types (forward declaration for MarketData interface)
+// Union of all core market data types
+export type CoreMarketData =
+  | import("./market-data.js").Price
+  | import("./market-data.js").Level1
+  | import("./market-data.js").OHLCV
+  | import("./market-data.js").MarketDepth;
+
+// Generic wrapper for all market data
+export interface MarketData<T extends CoreMarketData> {
+  readonly context: DataContext;
+  readonly coreData: T;
+}

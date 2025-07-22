@@ -4,7 +4,7 @@
  */
 
 import type { Result } from "@qi/base";
-import type { Level1, MarketData, MarketDepth, OHLCV, Price } from "./market-data.js";
+import type { Level1, MarketDepth, OHLCV, Price } from "./market-data.js";
 import type {
   ContextQuery,
   DataContext,
@@ -13,6 +13,7 @@ import type {
   Instrument,
   Levels,
   Market,
+  MarketData,
   Timeframe,
 } from "./types.js";
 
@@ -197,6 +198,11 @@ export interface StreamingMarketDataReader {
     levels: Levels,
     callback: (data: MarketData<MarketDepth>) => void
   ): Promise<Result<Subscription>>;
+
+  /**
+   * Unsubscribe from a streaming subscription
+   */
+  unsubscribe(subscription: Subscription): Promise<Result<void>>;
 }
 
 /**

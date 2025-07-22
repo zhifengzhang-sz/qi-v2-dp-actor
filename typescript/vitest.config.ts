@@ -9,6 +9,10 @@ export default defineConfig({
     globals: true,
     include: ["lib/tests/**/*.{test,spec}.ts"],
     exclude: ["tests/**/*.bench.ts", "node_modules/**", "dist/**"],
+    // Fix CommonJS/ESM module resolution issues
+    deps: {
+      interopDefault: true,
+    },
     coverage: {
       provider: "v8", // Note: Istanbul provider has compatibility issues with current Vitest version
       reporter: ["text", "json", "html"],

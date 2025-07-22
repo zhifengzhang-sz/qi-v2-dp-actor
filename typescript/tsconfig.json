@@ -36,6 +36,9 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
 
+    // Vitest globals support
+    "types": ["vitest/globals"],
+
     // Path mapping for QiCore namespace
     "baseUrl": ".",
     "paths": {
