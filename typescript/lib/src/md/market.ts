@@ -5,7 +5,7 @@
  */
 
 import type { Result } from "@qi/base";
-import { create, failure, success } from "@qi/base";
+import { Err, Ok, create, flatMap } from "@qi/base";
 import type * as DSL from "../dsl/index.js";
 import { isNonEmptyString } from "./validation.js";
 
@@ -35,7 +35,7 @@ export class Market implements DSL.Market {
     ];
 
     if (!validMarketTypes.includes(type)) {
-      return failure(
+      return Err(
         create(
           "INVALID_MARKET_TYPE",
           "Market type must be one of: EQUITY, CRYPTO, FOREX, COMMODITY, BOND, DERIVATIVE",
@@ -45,39 +45,39 @@ export class Market implements DSL.Market {
       );
     }
 
-    // Validate region (should be ISO 3166-1 alpha-2)
-    const regionResult = isNonEmptyString(region, "region");
-    if (regionResult.tag === "failure") {
-      return regionResult;
-    }
+    // Validate region using flatMap composition
+    return flatMap(
+      (validRegion) => {
+        // Basic ISO 3166-1 alpha-2 format validation
+        if (!/^[A-Z]{2}$/.test(validRegion)) {
+          return Err(
+            create(
+              "INVALID_REGION_FORMAT",
+              "Region must be a 2-letter ISO 3166-1 alpha-2 country code (e.g., US, GB, JP)",
+              "VALIDATION",
+              { value: validRegion, expectedFormat: "XX (two uppercase letters)" }
+            )
+          );
+        }
 
-    // Basic ISO 3166-1 alpha-2 format validation
-    if (!/^[A-Z]{2}$/.test(region)) {
-      return failure(
-        create(
-          "INVALID_REGION_FORMAT",
-          "Region must be a 2-letter ISO 3166-1 alpha-2 country code (e.g., US, GB, JP)",
-          "VALIDATION",
-          { value: region, expectedFormat: "XX (two uppercase letters)" }
-        )
-      );
-    }
+        // Validate segment
+        const validSegments: DSL.Segment[] = ["CASH", "FUTURES", "OPTIONS"];
 
-    // Validate segment
-    const validSegments: DSL.Segment[] = ["CASH", "FUTURES", "OPTIONS"];
+        if (!validSegments.includes(segment)) {
+          return Err(
+            create(
+              "INVALID_SEGMENT",
+              "Market segment must be one of: CASH, FUTURES, OPTIONS",
+              "VALIDATION",
+              { value: segment, validValues: validSegments }
+            )
+          );
+        }
 
-    if (!validSegments.includes(segment)) {
-      return failure(
-        create(
-          "INVALID_SEGMENT",
-          "Market segment must be one of: CASH, FUTURES, OPTIONS",
-          "VALIDATION",
-          { value: segment, validValues: validSegments }
-        )
-      );
-    }
-
-    return success(new Market(type, regionResult.value, segment));
+        return Ok(new Market(type, validRegion, segment));
+      },
+      isNonEmptyString(region, "region")
+    );
   }
 
   /**

@@ -5,7 +5,7 @@
  */
 
 import type { Result } from "@qi/base";
-import { create, failure, success } from "@qi/base";
+import { Err, Ok, create, flatMap } from "@qi/base";
 import type * as DSL from "../dsl/index.js";
 import { isNonNegativeDecimal, isPositiveDecimal, isValidTimestamp } from "./validation.js";
 
@@ -67,165 +67,163 @@ export class OHLCV implements DSL.OHLCV {
     tradeCount?: number,
     weightedAveragePrice?: DSL.decimal
   ): Result<OHLCV> {
-    // Validate timestamp
-    const timestampResult = isValidTimestamp(timestamp);
-    if (timestampResult.tag === "failure") {
-      return timestampResult;
-    }
+    // Validate all required fields using flatMap composition
+    return flatMap(
+      (validTimestamp) =>
+        flatMap(
+          (validOpen) =>
+            flatMap(
+              (validHigh) =>
+                flatMap(
+                  (validLow) =>
+                    flatMap(
+                      (validClose) =>
+                        flatMap(
+                          (validVolume) => {
+                            // Business rules: OHLC relationships
+                            const openNum = Number(validOpen);
+                            const highNum = Number(validHigh);
+                            const lowNum = Number(validLow);
+                            const closeNum = Number(validClose);
 
-    // Validate OHLC prices (all must be positive)
-    const openResult = isPositiveDecimal(open, "open");
-    if (openResult.tag === "failure") {
-      return openResult;
-    }
+                            // High must be >= max(open, close)
+                            const maxOpenClose = Math.max(openNum, closeNum);
+                            if (highNum < maxOpenClose) {
+                              return Err(
+                                create(
+                                  "INVALID_OHLC_HIGH",
+                                  "High must be greater than or equal to max(open, close)",
+                                  "VALIDATION",
+                                  {
+                                    open: validOpen,
+                                    high: validHigh,
+                                    close: validClose,
+                                    maxOpenClose,
+                                  }
+                                )
+                              );
+                            }
 
-    const highResult = isPositiveDecimal(high, "high");
-    if (highResult.tag === "failure") {
-      return highResult;
-    }
+                            // Low must be <= min(open, close)
+                            const minOpenClose = Math.min(openNum, closeNum);
+                            if (lowNum > minOpenClose) {
+                              return Err(
+                                create(
+                                  "INVALID_OHLC_LOW",
+                                  "Low must be less than or equal to min(open, close)",
+                                  "VALIDATION",
+                                  {
+                                    open: validOpen,
+                                    low: validLow,
+                                    close: validClose,
+                                    minOpenClose,
+                                  }
+                                )
+                              );
+                            }
 
-    const lowResult = isPositiveDecimal(low, "low");
-    if (lowResult.tag === "failure") {
-      return lowResult;
-    }
+                            // High must be >= low
+                            if (highNum < lowNum) {
+                              return Err(
+                                create(
+                                  "INVALID_OHLC_HIGH_LOW",
+                                  "High must be greater than or equal to low",
+                                  "VALIDATION",
+                                  {
+                                    high: validHigh,
+                                    low: validLow,
+                                  }
+                                )
+                              );
+                            }
 
-    const closeResult = isPositiveDecimal(close, "close");
-    if (closeResult.tag === "failure") {
-      return closeResult;
-    }
+                            // Validate optional fields using flatMap composition
+                            return flatMap(
+                              (validatedBaseVolume) =>
+                                flatMap(
+                                  (validatedQuoteVolume) => {
+                                    // Validate optional trade count (simple validation)
+                                    if (tradeCount !== undefined) {
+                                      if (
+                                        typeof tradeCount !== "number" ||
+                                        !Number.isInteger(tradeCount) ||
+                                        tradeCount < 0
+                                      ) {
+                                        return Err(
+                                          create(
+                                            "INVALID_TRADE_COUNT",
+                                            "Trade count must be a non-negative integer",
+                                            "VALIDATION",
+                                            { value: tradeCount, type: typeof tradeCount }
+                                          )
+                                        );
+                                      }
+                                    }
 
-    // Validate volume (must be non-negative)
-    const volumeResult = isNonNegativeDecimal(volume, "volume");
-    if (volumeResult.tag === "failure") {
-      return volumeResult;
-    }
+                                    return flatMap(
+                                      (validatedWAP) => {
+                                        // Business rule: VWAP should be within OHLC range
+                                        if (validatedWAP !== undefined) {
+                                          const wapNum = Number(validatedWAP);
+                                          if (wapNum < lowNum || wapNum > highNum) {
+                                            return Err(
+                                              create(
+                                                "INVALID_VWAP_RANGE",
+                                                "Weighted average price must be within low-high range",
+                                                "VALIDATION",
+                                                {
+                                                  weightedAveragePrice: validatedWAP,
+                                                  low: validLow,
+                                                  high: validHigh,
+                                                }
+                                              )
+                                            );
+                                          }
+                                        }
 
-    // Business rules: OHLC relationships
-    const openNum = Number(openResult.value);
-    const highNum = Number(highResult.value);
-    const lowNum = Number(lowResult.value);
-    const closeNum = Number(closeResult.value);
-
-    // High must be >= max(open, close)
-    const maxOpenClose = Math.max(openNum, closeNum);
-    if (highNum < maxOpenClose) {
-      return failure(
-        create(
-          "INVALID_OHLC_HIGH",
-          "High must be greater than or equal to max(open, close)",
-          "VALIDATION",
-          {
-            open: openResult.value,
-            high: highResult.value,
-            close: closeResult.value,
-            maxOpenClose,
-          }
-        )
-      );
-    }
-
-    // Low must be <= min(open, close)
-    const minOpenClose = Math.min(openNum, closeNum);
-    if (lowNum > minOpenClose) {
-      return failure(
-        create(
-          "INVALID_OHLC_LOW",
-          "Low must be less than or equal to min(open, close)",
-          "VALIDATION",
-          {
-            open: openResult.value,
-            low: lowResult.value,
-            close: closeResult.value,
-            minOpenClose,
-          }
-        )
-      );
-    }
-
-    // High must be >= low
-    if (highNum < lowNum) {
-      return failure(
-        create("INVALID_OHLC_HIGH_LOW", "High must be greater than or equal to low", "VALIDATION", {
-          high: highResult.value,
-          low: lowResult.value,
-        })
-      );
-    }
-
-    // Validate optional base volume
-    let validatedBaseVolume: DSL.decimal | undefined;
-    if (baseVolume !== undefined) {
-      const baseVolumeResult = isNonNegativeDecimal(baseVolume, "baseVolume");
-      if (baseVolumeResult.tag === "failure") {
-        return baseVolumeResult;
-      }
-      validatedBaseVolume = baseVolumeResult.value;
-    }
-
-    // Validate optional quote volume
-    let validatedQuoteVolume: DSL.decimal | undefined;
-    if (quoteVolume !== undefined) {
-      const quoteVolumeResult = isNonNegativeDecimal(quoteVolume, "quoteVolume");
-      if (quoteVolumeResult.tag === "failure") {
-        return quoteVolumeResult;
-      }
-      validatedQuoteVolume = quoteVolumeResult.value;
-    }
-
-    // Validate optional trade count
-    if (tradeCount !== undefined) {
-      if (typeof tradeCount !== "number" || !Number.isInteger(tradeCount) || tradeCount < 0) {
-        return failure(
-          create(
-            "INVALID_TRADE_COUNT",
-            "Trade count must be a non-negative integer",
-            "VALIDATION",
-            { value: tradeCount, type: typeof tradeCount }
-          )
-        );
-      }
-    }
-
-    // Validate optional weighted average price
-    let validatedWAP: DSL.decimal | undefined;
-    if (weightedAveragePrice !== undefined) {
-      const wapResult = isPositiveDecimal(weightedAveragePrice, "weightedAveragePrice");
-      if (wapResult.tag === "failure") {
-        return wapResult;
-      }
-      validatedWAP = wapResult.value;
-
-      // Business rule: VWAP should be within OHLC range
-      const wapNum = Number(wapResult.value);
-      if (wapNum < lowNum || wapNum > highNum) {
-        return failure(
-          create(
-            "INVALID_VWAP_RANGE",
-            "Weighted average price must be within low-high range",
-            "VALIDATION",
-            {
-              weightedAveragePrice: wapResult.value,
-              low: lowResult.value,
-              high: highResult.value,
-            }
-          )
-        );
-      }
-    }
-
-    return success(
-      new OHLCV(
-        timestampResult.value,
-        openResult.value,
-        highResult.value,
-        lowResult.value,
-        closeResult.value,
-        volumeResult.value,
-        validatedBaseVolume,
-        validatedQuoteVolume,
-        tradeCount,
-        validatedWAP
-      )
+                                        return Ok(
+                                          new OHLCV(
+                                            validTimestamp,
+                                            validOpen,
+                                            validHigh,
+                                            validLow,
+                                            validClose,
+                                            validVolume,
+                                            validatedBaseVolume,
+                                            validatedQuoteVolume,
+                                            tradeCount,
+                                            validatedWAP
+                                          )
+                                        );
+                                      },
+                                      weightedAveragePrice !== undefined
+                                        ? isPositiveDecimal(
+                                            weightedAveragePrice,
+                                            "weightedAveragePrice"
+                                          )
+                                        : Ok(undefined)
+                                    );
+                                  },
+                                  quoteVolume !== undefined
+                                    ? isNonNegativeDecimal(quoteVolume, "quoteVolume")
+                                    : Ok(undefined)
+                                ),
+                              baseVolume !== undefined
+                                ? isNonNegativeDecimal(baseVolume, "baseVolume")
+                                : Ok(undefined)
+                            );
+                          },
+                          isNonNegativeDecimal(volume, "volume")
+                        ),
+                      isPositiveDecimal(close, "close")
+                    ),
+                  isPositiveDecimal(low, "low")
+                ),
+              isPositiveDecimal(high, "high")
+            ),
+          isPositiveDecimal(open, "open")
+        ),
+      isValidTimestamp(timestamp)
     );
   }
 

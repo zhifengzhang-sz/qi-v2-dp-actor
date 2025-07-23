@@ -40,6 +40,21 @@ Production-ready patterns for sophisticated applications:
 - Error analysis and pattern detection
 - Retry logic and circuit breaker patterns
 
+### [Competency Protocol](./COMPETENCY-PROTOCOL.md) 📋
+Mandatory workflow for achieving @qi competency in future sessions:
+- Memory-first protocol requirements
+- Complete tutorial reading sequence
+- Hands-on verification checklist
+- Anti-pattern recognition guide
+
+### [Real-World Problem Solving](./REAL-WORLD-PROBLEM-SOLVING.md) 🔧
+Actual problems encountered and solved with detailed reasoning:
+- Type safety issues and solutions
+- Logger API integration problems  
+- Architecture boundary enforcement
+- Root cause analysis techniques
+- Complete logical thinking process for each solution
+
 ## Key Principles
 
 ### ✅ Always Maintain Result<T> Composition

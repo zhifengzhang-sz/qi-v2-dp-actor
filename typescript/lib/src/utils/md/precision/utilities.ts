@@ -3,8 +3,8 @@
  * Implements: docs/utils/md/precision.md Utility Functions
  */
 
-import { failure, success } from "@qi/base";
-import type { Result } from "@qi/base";
+import { Err, Ok } from "@qi/base";
+import type { QiError, Result } from "@qi/base";
 import { createMarketDataError } from "../errors.js";
 import { FinancialDecimal } from "./financial-decimal.js";
 
@@ -13,9 +13,9 @@ import { FinancialDecimal } from "./financial-decimal.js";
  * @param priceStr String representation of price
  * @returns Result<FinancialDecimal> with price validation
  */
-export function parsePrice(priceStr: string): Result<FinancialDecimal, any> {
+export function parsePrice(priceStr: string): Result<FinancialDecimal, QiError> {
   if (typeof priceStr !== "string") {
-    return failure(
+    return Err(
       createMarketDataError("INVALID_PRICE_STRING", "Price must be a string", "VALIDATION", {
         value: priceStr,
         error: typeof priceStr,
@@ -25,7 +25,7 @@ export function parsePrice(priceStr: string): Result<FinancialDecimal, any> {
 
   const trimmed = priceStr.trim();
   if (trimmed === "") {
-    return failure(
+    return Err(
       createMarketDataError("INVALID_PRICE_STRING", "Price string cannot be empty", "VALIDATION", {
         value: priceStr,
       })
@@ -40,9 +40,9 @@ export function parsePrice(priceStr: string): Result<FinancialDecimal, any> {
  * @param sizeStr String representation of size
  * @returns Result<FinancialDecimal> with size validation
  */
-export function parseSize(sizeStr: string): Result<FinancialDecimal, any> {
+export function parseSize(sizeStr: string): Result<FinancialDecimal, QiError> {
   if (typeof sizeStr !== "string") {
-    return failure(
+    return Err(
       createMarketDataError("INVALID_SIZE_STRING", "Size must be a string", "VALIDATION", {
         value: sizeStr,
         error: typeof sizeStr,
@@ -52,7 +52,7 @@ export function parseSize(sizeStr: string): Result<FinancialDecimal, any> {
 
   const trimmed = sizeStr.trim();
   if (trimmed === "") {
-    return failure(
+    return Err(
       createMarketDataError("INVALID_SIZE_STRING", "Size string cannot be empty", "VALIDATION", {
         value: sizeStr,
       })
@@ -96,7 +96,7 @@ export function formatBasisPoints(basisPoints: FinancialDecimal, decimalPlaces =
  * Create zero FinancialDecimal
  * @returns Result<FinancialDecimal> with zero value
  */
-export function zero(): Result<FinancialDecimal, any> {
+export function zero(): Result<FinancialDecimal, QiError> {
   return FinancialDecimal.create("0");
 }
 
@@ -104,7 +104,7 @@ export function zero(): Result<FinancialDecimal, any> {
  * Create one FinancialDecimal
  * @returns Result<FinancialDecimal> with one value
  */
-export function one(): Result<FinancialDecimal, any> {
+export function one(): Result<FinancialDecimal, QiError> {
   return FinancialDecimal.create("1");
 }
 

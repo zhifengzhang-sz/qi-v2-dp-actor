@@ -5,7 +5,7 @@
  */
 
 import type { Result } from "@qi/base";
-import { create, failure, success } from "@qi/base";
+import { Err, Ok, create } from "@qi/base";
 import type * as DSL from "../dsl/index.js";
 import { DataContext } from "./data-context.js";
 import { Level1 } from "./level1.js";
@@ -31,7 +31,7 @@ export class MarketData<T extends DSL.CoreMarketData> implements DSL.MarketData<
   ): Result<MarketData<T>> {
     // Validate context
     if (context === null || typeof context !== "object") {
-      return failure(
+      return Err(
         create("INVALID_CONTEXT", "Context must be a valid DataContext object", "VALIDATION", {
           value: context,
           type: typeof context,
@@ -41,7 +41,7 @@ export class MarketData<T extends DSL.CoreMarketData> implements DSL.MarketData<
 
     // Validate coreData
     if (coreData === null || typeof coreData !== "object") {
-      return failure(
+      return Err(
         create("INVALID_CORE_DATA", "Core data must be a valid market data object", "VALIDATION", {
           value: coreData,
           type: typeof coreData,
@@ -49,7 +49,7 @@ export class MarketData<T extends DSL.CoreMarketData> implements DSL.MarketData<
       );
     }
 
-    return success(new MarketData(context, coreData));
+    return Ok(new MarketData(context, coreData));
   }
 
   /**

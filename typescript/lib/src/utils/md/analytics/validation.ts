@@ -23,6 +23,7 @@ import type {
 export function isValidDominanceMetrics(obj: unknown): obj is DominanceMetrics {
   if (!obj || typeof obj !== "object") return false;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const metrics = obj as any;
 
   // Check required properties exist and are numbers
@@ -80,6 +81,7 @@ export function isValidDominanceMetrics(obj: unknown): obj is DominanceMetrics {
 export function isValidChangeMetrics(obj: unknown): obj is ChangeMetrics {
   if (!obj || typeof obj !== "object") return false;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const metrics = obj as any;
 
   // Check required properties exist and are numbers
@@ -119,6 +121,7 @@ export function isValidChangeMetrics(obj: unknown): obj is ChangeMetrics {
 export function isValidVolatilityMetrics(obj: unknown): obj is VolatilityMetrics {
   if (!obj || typeof obj !== "object") return false;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const metrics = obj as any;
 
   // Check required properties exist and are numbers
@@ -178,6 +181,7 @@ export function isValidVolatilityMetrics(obj: unknown): obj is VolatilityMetrics
 export function isValidLiquidityMetrics(obj: unknown): obj is LiquidityMetrics {
   if (!obj || typeof obj !== "object") return false;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const metrics = obj as any;
 
   // Check required properties exist and are numbers
@@ -240,6 +244,7 @@ export function isValidLiquidityMetrics(obj: unknown): obj is LiquidityMetrics {
 export function isValidMarketAnalytics(obj: unknown): obj is MarketAnalytics {
   if (!obj || typeof obj !== "object") return false;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const analytics = obj as any;
 
   // Check basic properties
@@ -296,6 +301,7 @@ export function isValidMarketAnalytics(obj: unknown): obj is MarketAnalytics {
 export function isValidMarketSummary(obj: unknown): obj is MarketSummary {
   if (!obj || typeof obj !== "object") return false;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const summary = obj as any;
 
   // Check basic properties
@@ -361,6 +367,7 @@ export function isValidMarketSummary(obj: unknown): obj is MarketSummary {
 export function isAnalyticsMarketData(obj: unknown): obj is AnalyticsMarketData {
   if (!obj || typeof obj !== "object") return false;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const data = obj as any;
 
   return (

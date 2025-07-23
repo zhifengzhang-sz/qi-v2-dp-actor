@@ -6,7 +6,7 @@
  * observability and error handling.
  */
 
-import { type Result, create, failure, flatMap, fromAsyncTryCatch, match, success } from "@qi/base";
+import { Err, Ok, type Result, create, flatMap, fromAsyncTryCatch, match } from "@qi/base";
 import type { QiError } from "@qi/base";
 import { ConfigBuilder, createLogger, createMemoryCache } from "@qi/core";
 import type { Config, ICache, LogLevel, Logger } from "@qi/core";
@@ -155,8 +155,9 @@ export class StreamingClient implements IStreamingClient {
 
       const infrastructure: StreamingInfrastructure = {
         config: {
-          get: (key: string, defaultValue?: any) => {
+          get: (key: string, defaultValue?: unknown) => {
             const keys = key.split(".");
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             let value: any = config;
             for (const k of keys) {
               value = value?.[k];
@@ -178,9 +179,9 @@ export class StreamingClient implements IStreamingClient {
         logLevel: config.logging.level,
       });
 
-      return success(infrastructure);
+      return Ok(infrastructure);
     } catch (error) {
-      return failure(
+      return Err(
         this.createStreamingError(
           "STREAMING_INVALID_CONFIG",
           `Failed to initialize streaming infrastructure: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -195,16 +196,16 @@ export class StreamingClient implements IStreamingClient {
    */
   private async ensureInfrastructure(): Promise<Result<StreamingInfrastructure, QiError>> {
     if (this.infrastructure) {
-      return success(this.infrastructure);
+      return Ok(this.infrastructure);
     }
 
     const result = await this.initializeInfrastructure();
 
     if (result.tag === "success") {
       this.infrastructure = result.value;
-      return success(result.value);
+      return Ok(result.value);
     }
-    return failure(result.error);
+    return Err(result.error);
   }
 
   // ===========================================================================
@@ -224,7 +225,7 @@ export class StreamingClient implements IStreamingClient {
     if (this.producers.has(producerKey)) {
       const existingProducer = this.producers.get(producerKey);
       if (!existingProducer) {
-        return failure(
+        return Err(
           this.createStreamingError("STREAMING_PRODUCER_FAILED", "Producer not found in cache", {
             operation: "getProducer",
             producerKey,
@@ -232,7 +233,7 @@ export class StreamingClient implements IStreamingClient {
         );
       }
       infrastructure.logger.debug("Returning existing producer", { producerKey });
-      return success(existingProducer);
+      return Ok(existingProducer);
     }
 
     // Step 2: Create producer (sync operation)
@@ -244,7 +245,7 @@ export class StreamingClient implements IStreamingClient {
     } as ProducerConfig;
 
     if (!this.kafka) {
-      return failure(
+      return Err(
         create("KAFKA_CLIENT_NOT_INITIALIZED", "Kafka client not initialized", "SYSTEM", {
           operation: "getProducer",
         })
@@ -265,7 +266,7 @@ export class StreamingClient implements IStreamingClient {
       config: producerConfig,
     });
 
-    return success(producer);
+    return Ok(producer);
   }
 
   async getConsumer(config: ConsumerConfig): Promise<Result<IStreamingConsumer, QiError>> {
@@ -281,7 +282,7 @@ export class StreamingClient implements IStreamingClient {
     if (this.consumers.has(consumerKey)) {
       const existingConsumer = this.consumers.get(consumerKey);
       if (!existingConsumer) {
-        return failure(
+        return Err(
           this.createStreamingError("STREAMING_CONSUMER_FAILED", "Consumer not found in cache", {
             operation: "getConsumer",
             consumerKey,
@@ -289,14 +290,14 @@ export class StreamingClient implements IStreamingClient {
         );
       }
       infrastructure.logger.debug("Returning existing consumer", { groupId: config.groupId });
-      return success(existingConsumer);
+      return Ok(existingConsumer);
     }
 
     // Step 2: Create consumer (sync operation)
     const streamingConfig = this.extractStreamingConfig(infrastructure.config);
 
     if (!this.kafka) {
-      return failure(
+      return Err(
         create("KAFKA_CLIENT_NOT_INITIALIZED", "Kafka client not initialized", "SYSTEM", {
           operation: "getConsumer",
         })
@@ -317,7 +318,7 @@ export class StreamingClient implements IStreamingClient {
       config,
     });
 
-    return success(consumer);
+    return Ok(consumer);
   }
 
   async getAdmin(): Promise<Result<IStreamingAdmin, QiError>> {
@@ -331,14 +332,14 @@ export class StreamingClient implements IStreamingClient {
 
     if (this.admin) {
       infrastructure.logger.debug("Returning existing admin client");
-      return success(this.admin);
+      return Ok(this.admin);
     }
 
     // Step 2: Create admin (sync operation)
     const streamingConfig = this.extractStreamingConfig(infrastructure.config);
 
     if (!this.kafka) {
-      return failure(
+      return Err(
         create("KAFKA_CLIENT_NOT_INITIALIZED", "Kafka client not initialized", "SYSTEM", {
           operation: "getAdmin",
         })
@@ -348,7 +349,7 @@ export class StreamingClient implements IStreamingClient {
     this.admin = new StreamingAdmin(this.kafka, streamingConfig, infrastructure.logger);
 
     infrastructure.logger.info("Created new admin client");
-    return success(this.admin);
+    return Ok(this.admin);
   }
 
   // ===========================================================================
@@ -357,7 +358,7 @@ export class StreamingClient implements IStreamingClient {
 
   async disconnect(): Promise<Result<void, QiError>> {
     if (!this.infrastructure) {
-      return success(undefined);
+      return Ok(undefined);
     }
 
     const opLogger = this.infrastructure.logger.child({ operation: "disconnect" });
@@ -416,16 +417,16 @@ export class StreamingClient implements IStreamingClient {
         { operation: "disconnect", errorCount: errors.length, errors: errors.map((e) => e.message) }
       );
       opLogger.error("Streaming client disconnection completed with errors");
-      return failure(combinedError);
+      return Err(combinedError);
     }
 
     opLogger.info("Streaming client disconnected successfully");
-    return success(undefined);
+    return Ok(undefined);
   }
 
   async isHealthy(): Promise<Result<boolean, QiError>> {
     if (!this.infrastructure || !this.kafka) {
-      return success(false);
+      return Ok(false);
     }
 
     const opLogger = this.infrastructure.logger.child({ operation: "healthCheck" });
@@ -438,7 +439,7 @@ export class StreamingClient implements IStreamingClient {
         opLogger.warn("Health check failed - could not get admin client", {
           error: adminResult.error.message,
         });
-        return success(false);
+        return Ok(false);
       }
 
       const admin = adminResult.value;
@@ -449,7 +450,7 @@ export class StreamingClient implements IStreamingClient {
         opLogger.warn("Health check failed - could not connect admin", {
           error: connectResult.error.message,
         });
-        return success(false);
+        return Ok(false);
       }
 
       // Test by listing topics
@@ -461,11 +462,11 @@ export class StreamingClient implements IStreamingClient {
             topicCount: topics.length,
             isHealthy: true,
           });
-          return success(true);
+          return Ok(true);
         },
         (error) => {
           opLogger.warn("Health check failed on topic listing", { message: error.message });
-          return success(false);
+          return Ok(false);
         },
         listResult
       );
@@ -477,7 +478,7 @@ export class StreamingClient implements IStreamingClient {
       );
 
       opLogger.warn("Health check failed with exception", { message: qiError.message });
-      return success(false);
+      return Ok(false);
     }
   }
 
@@ -522,9 +523,9 @@ export async function createStreamingClient(
 ): Promise<Result<IStreamingClient, QiError>> {
   try {
     const client = new StreamingClient(configPath);
-    return success(client);
+    return Ok(client);
   } catch (error) {
-    return failure(
+    return Err(
       create(
         "STREAMING_INVALID_CONFIG",
         `Failed to create streaming client: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -542,9 +543,9 @@ export async function createStreamingClient(
 export async function createStreamingClientFromEnv(): Promise<Result<IStreamingClient, QiError>> {
   try {
     const client = new StreamingClient();
-    return success(client);
+    return Ok(client);
   } catch (error) {
-    return failure(
+    return Err(
       create(
         "STREAMING_INVALID_CONFIG",
         `Failed to create streaming client from environment: ${error instanceof Error ? error.message : "Unknown error"}`,

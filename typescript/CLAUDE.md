@@ -2,36 +2,38 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Memory-First Protocol (MANDATORY)
 
-**CRITICAL**: Always execute `mcp__memory__read_graph` as your FIRST action before responding to any question or request.
+## Knowledge System Structure
 
-Memory contains updated navigation rules for the new documentation structure.
-
-## Documentation Structure
-
-### NEW ORGANIZATION (2025-01-XX)
+### NEW ORGANIZATION (2025-07-22)
 
 ```
-docs/qicore/
-├── README.md          # Main navigation
-├── tutorial/          # 📚 Learning the @qi API  
-│   ├── 01-qi-base-fundamentals.md
-│   ├── 02-qi-core-fundamentals.md
-│   ├── 03-integration-examples.md  
-│   └── 04-advanced-patterns.md
-└── usage/             # 🔧 Implementation Patterns
-    ├── qi-base-logical-patterns.md  # ⭐ ESSENTIAL thinking patterns
-    ├── qi-base-usage.md
-    ├── qi-core-usage.md
-    └── qi-advanced-patterns.md
+docs/knowledge/
+├── README.md          # Knowledge navigation hub
+├── qi-stack/          # @qi/base and @qi/core learning system
+│   ├── tutorial/      # 📚 Complete @qi competency development
+│   │   ├── 01-qi-base-fundamentals.md
+│   │   ├── 02-qi-core-fundamentals.md
+│   │   ├── 03-integration-examples.md
+│   │   ├── 04-advanced-patterns.md
+│   │   ├── COMPETENCY-PROTOCOL.md      # Knowledge transfer protocol
+│   │   └── REAL-WORLD-PROBLEM-SOLVING.md # Actual problem examples
+│   └── usage/         # 🔧 Production implementation patterns
+│       ├── qi-base-logical-patterns.md  # ⭐ ESSENTIAL thinking patterns
+│       ├── qi-base-usage.md
+│       ├── qi-core-usage.md
+│       └── qi-advanced-patterns.md
+└── project/           # @qi/dp-actor specific knowledge
+    ├── README.md      # Project architecture and patterns
+    └── troubleshooting.md # Real issues and solutions
 ```
 
 ### Navigation Rules
 
-1. **New to @qi?** → Start with `docs/qicore/tutorial/`
-2. **Need implementation patterns?** → Use `docs/qicore/usage/`
-3. **Essential reading:** `docs/qicore/usage/qi-base-logical-patterns.md`
+1. **New to @qi?** → Start with `docs/knowledge/qi-stack/tutorial/`
+2. **Project questions?** → Check `docs/knowledge/project/`
+3. **Implementation patterns?** → Use `docs/knowledge/qi-stack/usage/`
+4. **Troubleshooting?** → See `docs/knowledge/project/troubleshooting.md`
 
 ## Workflow
 
@@ -57,4 +59,4 @@ bun run test:watch   # Development testing
 
 ---
 
-**REMEMBER**: Memory contains the current file structure and navigation rules. Always check memory first, then follow the file reading rules to the new docs/qicore/ structure.
+**REMEMBER**: Memory contains navigation rules pointing to the knowledge system. Always check memory first, then follow navigation to read the comprehensive documentation in `docs/knowledge/`.

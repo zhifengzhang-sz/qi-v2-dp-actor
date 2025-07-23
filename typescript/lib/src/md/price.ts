@@ -5,7 +5,7 @@
  */
 
 import type { Result } from "@qi/base";
-import { create, failure, flatMap, match, success } from "@qi/base";
+import { Err, Ok, create, flatMap } from "@qi/base";
 import type * as DSL from "../dsl/index.js";
 import { isOptionalNonEmptyString, isPositiveDecimal, isValidTimestamp } from "./validation.js";
 
@@ -46,7 +46,7 @@ export class Price implements DSL.Price {
   ): Result<Price> {
     // Validate optional aggressor first (simple check)
     if (aggressor !== undefined && aggressor !== "BUY" && aggressor !== "SELL") {
-      return failure(
+      return Err(
         create("INVALID_AGGRESSOR", "Aggressor must be BUY or SELL", "VALIDATION", {
           value: aggressor,
           field: "aggressor",
@@ -63,9 +63,7 @@ export class Price implements DSL.Price {
               (validSize) =>
                 flatMap(
                   (validTradeId) =>
-                    success(
-                      new Price(validTimestamp, validPrice, validSize, validTradeId, aggressor)
-                    ),
+                    Ok(new Price(validTimestamp, validPrice, validSize, validTradeId, aggressor)),
                   isOptionalNonEmptyString(tradeId, "tradeId")
                 ),
               isPositiveDecimal(size, "size")

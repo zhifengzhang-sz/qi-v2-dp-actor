@@ -4,14 +4,14 @@
  */
 
 import type { Result } from "@qi/base";
-import { create, failure, flatMap, success } from "@qi/base";
+import { Err, Ok, create, flatMap } from "@qi/base";
 
 /**
  * Validates ISO 8601 timestamp string
  */
 export const isValidTimestamp = (timestamp: string): Result<string> => {
   if (typeof timestamp !== "string" || timestamp.trim() === "") {
-    return failure(
+    return Err(
       create("INVALID_TIMESTAMP", "Timestamp must be a non-empty string", "VALIDATION", {
         value: timestamp,
       })
@@ -21,7 +21,7 @@ export const isValidTimestamp = (timestamp: string): Result<string> => {
   try {
     const date = new Date(timestamp);
     if (Number.isNaN(date.getTime())) {
-      return failure(
+      return Err(
         create(
           "INVALID_TIMESTAMP_FORMAT",
           "Timestamp must be valid ISO 8601 format",
@@ -30,9 +30,9 @@ export const isValidTimestamp = (timestamp: string): Result<string> => {
         )
       );
     }
-    return success(timestamp);
+    return Ok(timestamp);
   } catch (error) {
-    return failure(
+    return Err(
       create("INVALID_TIMESTAMP_PARSE", "Failed to parse timestamp", "VALIDATION", {
         value: timestamp,
         error: String(error),
@@ -50,7 +50,7 @@ export const isPositiveFiniteNumber = (value: unknown, fieldName: string): Resul
   if (typeof value === "string") {
     const parsed = Number(value);
     if (Number.isNaN(parsed)) {
-      return failure(
+      return Err(
         create("INVALID_NUMBER_FORMAT", `${fieldName} must be a valid number`, "VALIDATION", {
           field: fieldName,
           value,
@@ -61,7 +61,7 @@ export const isPositiveFiniteNumber = (value: unknown, fieldName: string): Resul
   }
 
   if (typeof numericValue !== "number") {
-    return failure(
+    return Err(
       create("INVALID_NUMBER_TYPE", `${fieldName} must be a number`, "VALIDATION", {
         field: fieldName,
         value,
@@ -71,7 +71,7 @@ export const isPositiveFiniteNumber = (value: unknown, fieldName: string): Resul
   }
 
   if (!Number.isFinite(numericValue)) {
-    return failure(
+    return Err(
       create(
         "INVALID_NUMBER_FINITE",
         `${fieldName} must be finite (no NaN or Infinity)`,
@@ -82,7 +82,7 @@ export const isPositiveFiniteNumber = (value: unknown, fieldName: string): Resul
   }
 
   if (numericValue <= 0) {
-    return failure(
+    return Err(
       create("INVALID_NUMBER_POSITIVE", `${fieldName} must be positive`, "VALIDATION", {
         field: fieldName,
         value: numericValue,
@@ -90,7 +90,7 @@ export const isPositiveFiniteNumber = (value: unknown, fieldName: string): Resul
     );
   }
 
-  return success(numericValue);
+  return Ok(numericValue);
 };
 
 /**
@@ -102,7 +102,7 @@ export const isNonNegativeFiniteNumber = (value: unknown, fieldName: string): Re
   if (typeof value === "string") {
     const parsed = Number(value);
     if (Number.isNaN(parsed)) {
-      return failure(
+      return Err(
         create("INVALID_NUMBER_FORMAT", `${fieldName} must be a valid number`, "VALIDATION", {
           field: fieldName,
           value,
@@ -113,7 +113,7 @@ export const isNonNegativeFiniteNumber = (value: unknown, fieldName: string): Re
   }
 
   if (typeof numericValue !== "number") {
-    return failure(
+    return Err(
       create("INVALID_NUMBER_TYPE", `${fieldName} must be a number`, "VALIDATION", {
         field: fieldName,
         value,
@@ -123,7 +123,7 @@ export const isNonNegativeFiniteNumber = (value: unknown, fieldName: string): Re
   }
 
   if (!Number.isFinite(numericValue)) {
-    return failure(
+    return Err(
       create(
         "INVALID_NUMBER_FINITE",
         `${fieldName} must be finite (no NaN or Infinity)`,
@@ -134,7 +134,7 @@ export const isNonNegativeFiniteNumber = (value: unknown, fieldName: string): Re
   }
 
   if (numericValue < 0) {
-    return failure(
+    return Err(
       create("INVALID_NUMBER_NON_NEGATIVE", `${fieldName} must be non-negative`, "VALIDATION", {
         field: fieldName,
         value: numericValue,
@@ -142,7 +142,7 @@ export const isNonNegativeFiniteNumber = (value: unknown, fieldName: string): Re
     );
   }
 
-  return success(numericValue);
+  return Ok(numericValue);
 };
 
 /**
@@ -150,7 +150,7 @@ export const isNonNegativeFiniteNumber = (value: unknown, fieldName: string): Re
  */
 export const isValidDecimal = (value: string, fieldName: string): Result<string> => {
   if (typeof value !== "string") {
-    return failure(
+    return Err(
       create("INVALID_DECIMAL_TYPE", `${fieldName} must be a string`, "VALIDATION", {
         field: fieldName,
         value,
@@ -160,7 +160,7 @@ export const isValidDecimal = (value: string, fieldName: string): Result<string>
   }
 
   if (value.trim() === "") {
-    return failure(
+    return Err(
       create("INVALID_DECIMAL_EMPTY", `${fieldName} cannot be empty`, "VALIDATION", {
         field: fieldName,
         value,
@@ -174,7 +174,7 @@ export const isValidDecimal = (value: string, fieldName: string): Result<string>
   // Check for valid decimal pattern (optional sign, digits, optional decimal point and digits)
   const decimalPattern = /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/;
   if (!decimalPattern.test(trimmedValue)) {
-    return failure(
+    return Err(
       create(
         "INVALID_DECIMAL_PATTERN",
         `${fieldName} must be a valid decimal format`,
@@ -186,7 +186,7 @@ export const isValidDecimal = (value: string, fieldName: string): Result<string>
 
   const parsed = Number(trimmedValue);
   if (Number.isNaN(parsed)) {
-    return failure(
+    return Err(
       create(
         "INVALID_DECIMAL_FORMAT",
         `${fieldName} must be a valid decimal number`,
@@ -197,7 +197,7 @@ export const isValidDecimal = (value: string, fieldName: string): Result<string>
   }
 
   if (!Number.isFinite(parsed)) {
-    return failure(
+    return Err(
       create("INVALID_DECIMAL_FINITE", `${fieldName} must be finite`, "VALIDATION", {
         field: fieldName,
         value,
@@ -207,7 +207,7 @@ export const isValidDecimal = (value: string, fieldName: string): Result<string>
 
   // Additional check for extremely large/small numbers that might cause precision issues
   if (Math.abs(parsed) > Number.MAX_SAFE_INTEGER) {
-    return failure(
+    return Err(
       create(
         "INVALID_DECIMAL_PRECISION",
         `${fieldName} exceeds safe precision range`,
@@ -221,7 +221,7 @@ export const isValidDecimal = (value: string, fieldName: string): Result<string>
     );
   }
 
-  return success(trimmedValue);
+  return Ok(trimmedValue);
 };
 
 /**
@@ -232,14 +232,14 @@ export const isPositiveDecimal = (value: string, fieldName: string): Result<stri
     (validDecimal) => {
       const numValue = Number(validDecimal);
       if (numValue <= 0) {
-        return failure(
+        return Err(
           create("INVALID_DECIMAL_POSITIVE", `${fieldName} must be positive`, "VALIDATION", {
             field: fieldName,
             value,
           })
         );
       }
-      return success(validDecimal);
+      return Ok(validDecimal);
     },
     isValidDecimal(value, fieldName)
   );
@@ -253,7 +253,7 @@ export const isNonNegativeDecimal = (value: string, fieldName: string): Result<s
     (validDecimal) => {
       const numValue = Number(validDecimal);
       if (numValue < 0) {
-        return failure(
+        return Err(
           create(
             "INVALID_DECIMAL_NON_NEGATIVE",
             `${fieldName} must be non-negative`,
@@ -265,7 +265,7 @@ export const isNonNegativeDecimal = (value: string, fieldName: string): Result<s
           )
         );
       }
-      return success(validDecimal);
+      return Ok(validDecimal);
     },
     isValidDecimal(value, fieldName)
   );
@@ -276,7 +276,7 @@ export const isNonNegativeDecimal = (value: string, fieldName: string): Result<s
  */
 export const isNonEmptyString = (value: unknown, fieldName: string): Result<string> => {
   if (typeof value !== "string") {
-    return failure(
+    return Err(
       create("INVALID_STRING_TYPE", `${fieldName} must be a string`, "VALIDATION", {
         field: fieldName,
         value,
@@ -286,7 +286,7 @@ export const isNonEmptyString = (value: unknown, fieldName: string): Result<stri
   }
 
   if (value.trim() === "") {
-    return failure(
+    return Err(
       create("INVALID_STRING_EMPTY", `${fieldName} cannot be empty`, "VALIDATION", {
         field: fieldName,
         value,
@@ -294,7 +294,7 @@ export const isNonEmptyString = (value: unknown, fieldName: string): Result<stri
     );
   }
 
-  return success(value);
+  return Ok(value);
 };
 
 /**
@@ -305,8 +305,8 @@ export const isOptionalNonEmptyString = (
   fieldName: string
 ): Result<string | undefined> => {
   if (value === undefined) {
-    return success(undefined);
+    return Ok(undefined);
   }
 
-  return flatMap((validString) => success(validString), isNonEmptyString(value, fieldName));
+  return flatMap((validString) => Ok(validString), isNonEmptyString(value, fieldName));
 };

@@ -3,7 +3,7 @@
  * Based on working examples from qi-v2-qicore/typescript/app/
  */
 
-import { type Result, create, failure, success } from "@qi/base";
+import { Err, Ok, type Result, create } from "@qi/base";
 import type { QiError } from "@qi/base";
 import { createLogger, createMemoryCache } from "@qi/core";
 import type { ICache, Logger } from "@qi/core";
@@ -32,7 +32,7 @@ export class StreamingClient implements IStreamingClient {
 
   private async initialize(): Promise<Result<void, QiError>> {
     if (this.logger && this.cache && this.kafka) {
-      return success(undefined);
+      return Ok(undefined);
     }
 
     // Create logger following working examples
@@ -51,7 +51,7 @@ export class StreamingClient implements IStreamingClient {
     });
 
     this.logger.info("Streaming client initialized");
-    return success(undefined);
+    return Ok(undefined);
   }
 
   async getProducer(config?: ProducerConfig): Promise<Result<IStreamingProducer, QiError>> {
@@ -63,14 +63,14 @@ export class StreamingClient implements IStreamingClient {
     if (this.producers.has(producerKey)) {
       const producer = this.producers.get(producerKey);
       if (!producer) {
-        return failure(
+        return Err(
           create("PRODUCER_NOT_FOUND", `Producer not found: ${producerKey}`, "SYSTEM", {
             producerKey,
             availableProducers: Array.from(this.producers.keys()),
           })
         );
       }
-      return success(producer);
+      return Ok(producer);
     }
 
     const streamingConfig: StreamingConfig = {
@@ -79,7 +79,7 @@ export class StreamingClient implements IStreamingClient {
     };
 
     if (!this.kafka || !this.logger) {
-      return failure(
+      return Err(
         create("CLIENT_NOT_INITIALIZED", "Kafka client or logger not initialized", "SYSTEM", {
           kafka: !!this.kafka,
           logger: !!this.logger,
@@ -90,7 +90,7 @@ export class StreamingClient implements IStreamingClient {
     const producer = new StreamingProducer(this.kafka, streamingConfig, config || {}, this.logger);
 
     this.producers.set(producerKey, producer);
-    return success(producer);
+    return Ok(producer);
   }
 
   async getConsumer(config: ConsumerConfig): Promise<Result<IStreamingConsumer, QiError>> {
@@ -102,14 +102,14 @@ export class StreamingClient implements IStreamingClient {
     if (this.consumers.has(consumerKey)) {
       const consumer = this.consumers.get(consumerKey);
       if (!consumer) {
-        return failure(
+        return Err(
           create("CONSUMER_NOT_FOUND", `Consumer not found: ${consumerKey}`, "SYSTEM", {
             consumerKey,
             availableConsumers: Array.from(this.consumers.keys()),
           })
         );
       }
-      return success(consumer);
+      return Ok(consumer);
     }
 
     const streamingConfig: StreamingConfig = {
@@ -118,7 +118,7 @@ export class StreamingClient implements IStreamingClient {
     };
 
     if (!this.kafka || !this.logger) {
-      return failure(
+      return Err(
         create("CLIENT_NOT_INITIALIZED", "Kafka client or logger not initialized", "SYSTEM", {
           kafka: !!this.kafka,
           logger: !!this.logger,
@@ -129,7 +129,7 @@ export class StreamingClient implements IStreamingClient {
     const consumer = new StreamingConsumer(this.kafka, streamingConfig, config, this.logger);
 
     this.consumers.set(consumerKey, consumer);
-    return success(consumer);
+    return Ok(consumer);
   }
 
   async getAdmin(): Promise<Result<IStreamingAdmin, QiError>> {
@@ -137,7 +137,7 @@ export class StreamingClient implements IStreamingClient {
     if (initResult.tag === "failure") return initResult;
 
     if (this.admin) {
-      return success(this.admin);
+      return Ok(this.admin);
     }
 
     const streamingConfig: StreamingConfig = {
@@ -146,7 +146,7 @@ export class StreamingClient implements IStreamingClient {
     };
 
     if (!this.kafka || !this.logger) {
-      return failure(
+      return Err(
         create("CLIENT_NOT_INITIALIZED", "Kafka client or logger not initialized", "SYSTEM", {
           kafka: !!this.kafka,
           logger: !!this.logger,
@@ -156,11 +156,11 @@ export class StreamingClient implements IStreamingClient {
 
     this.admin = new StreamingAdmin(this.kafka, streamingConfig, this.logger);
 
-    return success(this.admin);
+    return Ok(this.admin);
   }
 
   async disconnect(): Promise<Result<void, QiError>> {
-    if (!this.logger) return success(undefined);
+    if (!this.logger) return Ok(undefined);
 
     this.logger.info("Disconnecting streaming client");
 
@@ -181,29 +181,29 @@ export class StreamingClient implements IStreamingClient {
     this.kafka = null;
 
     this.logger.info("Streaming client disconnected");
-    return success(undefined);
+    return Ok(undefined);
   }
 
   async isHealthy(): Promise<Result<boolean, QiError>> {
     if (!this.kafka || !this.logger) {
-      return success(false);
+      return Ok(false);
     }
 
     try {
       const adminResult = await this.getAdmin();
-      if (adminResult.tag === "failure") return success(false);
+      if (adminResult.tag === "failure") return Ok(false);
 
       const admin = adminResult.value;
       const connectResult = await admin.connect();
-      if (connectResult.tag === "failure") return success(false);
+      if (connectResult.tag === "failure") return Ok(false);
 
       const listResult = await admin.listTopics();
       const healthy = listResult.tag === "success";
 
       this.logger.debug("Health check completed", { healthy });
-      return success(healthy);
+      return Ok(healthy);
     } catch {
-      return success(false);
+      return Ok(false);
     }
   }
 }

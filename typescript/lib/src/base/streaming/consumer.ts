@@ -5,7 +5,7 @@
  * infrastructure integration for proper observability and error handling.
  */
 
-import { type Result, create, failure, flatMap, fromAsyncTryCatch, match, success } from "@qi/base";
+import { Err, Ok, type Result, create, flatMap, fromAsyncTryCatch, match } from "@qi/base";
 import type { QiError } from "@qi/base";
 import type { Logger } from "@qi/core";
 import type { Consumer, ConsumerRunConfig, EachMessagePayload, Kafka } from "kafkajs";
@@ -48,7 +48,7 @@ export class StreamingConsumer implements IStreamingConsumer {
 
     if (this.connected) {
       opLogger.debug("Consumer already connected");
-      return success(undefined);
+      return Ok(undefined);
     }
 
     opLogger.info("Connecting consumer", {
@@ -79,9 +79,9 @@ export class StreamingConsumer implements IStreamingConsumer {
         );
 
         opLogger.error("Consumer connection failed", undefined, {
-          code: qiError.code,
-          category: qiError.category,
-          error: qiError.message,
+          errorCode: qiError.code,
+          errorCategory: qiError.category,
+          errorMessage: qiError.message,
         });
 
         return qiError;
@@ -94,7 +94,7 @@ export class StreamingConsumer implements IStreamingConsumer {
 
     if (!this.connected || !this.consumer) {
       opLogger.debug("Consumer already disconnected");
-      return success(undefined);
+      return Ok(undefined);
     }
 
     opLogger.info("Disconnecting consumer");
@@ -118,9 +118,9 @@ export class StreamingConsumer implements IStreamingConsumer {
         );
 
         opLogger.error("Consumer disconnection failed", undefined, {
-          code: qiError.code,
-          category: qiError.category,
-          error: qiError.message,
+          errorCode: qiError.code,
+          errorCategory: qiError.category,
+          errorMessage: qiError.message,
         });
         return qiError;
       }
@@ -148,7 +148,7 @@ export class StreamingConsumer implements IStreamingConsumer {
         { operation: "subscribe", topics: config.topics }
       );
       opLogger.error("Subscribe failed - consumer not connected");
-      return failure(error);
+      return Err(error);
     }
 
     // Step 1: Validate subscription config (sync operation)
@@ -188,9 +188,9 @@ export class StreamingConsumer implements IStreamingConsumer {
         );
 
         opLogger.error("Topic subscription failed", undefined, {
-          code: qiError.code,
-          category: qiError.category,
-          error: qiError.message,
+          errorCode: qiError.code,
+          errorCategory: qiError.category,
+          errorMessage: qiError.message,
         });
         return qiError;
       }
@@ -211,7 +211,7 @@ export class StreamingConsumer implements IStreamingConsumer {
         { operation: "run" }
       );
       opLogger.error("Run failed - consumer not connected");
-      return failure(error);
+      return Err(error);
     }
 
     if (!this.subscribed) {
@@ -221,12 +221,12 @@ export class StreamingConsumer implements IStreamingConsumer {
         { operation: "run" }
       );
       opLogger.error("Run failed - consumer not subscribed");
-      return failure(error);
+      return Err(error);
     }
 
     if (this.running) {
       opLogger.debug("Consumer already running");
-      return success(undefined);
+      return Ok(undefined);
     }
 
     opLogger.info("Starting consumer run loop");
@@ -299,9 +299,9 @@ export class StreamingConsumer implements IStreamingConsumer {
         );
 
         opLogger.error("Consumer run failed", undefined, {
-          code: qiError.code,
-          category: qiError.category,
-          error: qiError.message,
+          errorCode: qiError.code,
+          errorCategory: qiError.category,
+          errorMessage: qiError.message,
         });
         return qiError;
       }
@@ -322,7 +322,7 @@ export class StreamingConsumer implements IStreamingConsumer {
         { operation: "commitOffsets" }
       );
       opLogger.error("Commit offsets failed - consumer not ready");
-      return failure(error);
+      return Err(error);
     }
 
     opLogger.debug("Committing current offsets");
@@ -341,9 +341,9 @@ export class StreamingConsumer implements IStreamingConsumer {
         );
 
         opLogger.error("Offset commit failed", undefined, {
-          code: qiError.code,
-          category: qiError.category,
-          error: qiError.message,
+          errorCode: qiError.code,
+          errorCategory: qiError.category,
+          errorMessage: qiError.message,
         });
         return qiError;
       }
@@ -365,7 +365,7 @@ export class StreamingConsumer implements IStreamingConsumer {
         { operation: "seek", topic, partition, offset }
       );
       opLogger.error("Seek failed - consumer not connected");
-      return failure(error);
+      return Err(error);
     }
 
     opLogger.debug("Seeking to offset", { topic, partition, offset });
@@ -390,9 +390,9 @@ export class StreamingConsumer implements IStreamingConsumer {
         );
 
         opLogger.error("Seek operation failed", undefined, {
-          code: qiError.code,
-          category: qiError.category,
-          error: qiError.message,
+          errorCode: qiError.code,
+          errorCategory: qiError.category,
+          errorMessage: qiError.message,
         });
         return qiError;
       }
@@ -414,9 +414,9 @@ export class StreamingConsumer implements IStreamingConsumer {
         maxWaitTimeInMs: this.consumerConfig.maxWaitTimeInMs ?? 5000,
       });
 
-      return success(undefined);
+      return Ok(undefined);
     } catch (error) {
-      return failure(
+      return Err(
         this.createStreamingError(
           "STREAMING_CONNECTION_FAILED",
           `Failed to create consumer instance: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -430,7 +430,7 @@ export class StreamingConsumer implements IStreamingConsumer {
     config: SubscriptionConfig
   ): Result<SubscriptionConfig, QiError> {
     if (!config.topics || config.topics.length === 0) {
-      return failure(
+      return Err(
         this.createStreamingError(
           "STREAMING_INVALID_CONFIG",
           "Subscription topics cannot be empty",
@@ -441,7 +441,7 @@ export class StreamingConsumer implements IStreamingConsumer {
 
     const invalidTopics = config.topics.filter((topic) => !topic || topic.trim().length === 0);
     if (invalidTopics.length > 0) {
-      return failure(
+      return Err(
         this.createStreamingError(
           "STREAMING_INVALID_CONFIG",
           "All topic names must be non-empty strings",
@@ -450,7 +450,7 @@ export class StreamingConsumer implements IStreamingConsumer {
       );
     }
 
-    return success(config);
+    return Ok(config);
   }
 
   private parseHeaders(

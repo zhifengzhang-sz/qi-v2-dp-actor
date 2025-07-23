@@ -5,7 +5,7 @@
  */
 
 import type { Result } from "@qi/base";
-import { create, failure, success } from "@qi/base";
+import { Err, Ok, create } from "@qi/base";
 import type * as DSL from "../dsl/index.js";
 import { isNonEmptyString } from "./validation.js";
 
@@ -44,7 +44,7 @@ export class Instrument implements DSL.Instrument {
     let validatedIsin: string | null = null;
     if (isin !== null) {
       if (typeof isin !== "string") {
-        return failure(
+        return Err(
           create("INVALID_ISIN_TYPE", "ISIN must be a string or null", "VALIDATION", {
             value: isin,
             type: typeof isin,
@@ -53,7 +53,7 @@ export class Instrument implements DSL.Instrument {
       }
 
       if (isin.trim() === "") {
-        return failure(
+        return Err(
           create(
             "INVALID_ISIN_EMPTY",
             "ISIN cannot be empty (use null if not available)",
@@ -65,7 +65,7 @@ export class Instrument implements DSL.Instrument {
 
       // ISIN should be 12 characters: 2-letter country code + 9 alphanumeric + 1 check digit
       if (!/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(isin)) {
-        return failure(
+        return Err(
           create(
             "INVALID_ISIN_FORMAT",
             "ISIN must be 12 characters: 2-letter country code + 9 alphanumeric + 1 check digit (ISO 6166)",
@@ -95,7 +95,7 @@ export class Instrument implements DSL.Instrument {
     ];
 
     if (!validAssetClasses.includes(assetClass)) {
-      return failure(
+      return Err(
         create(
           "INVALID_ASSET_CLASS",
           "Asset class must be one of: STOCK, CRYPTO, CURRENCY, COMMODITY, BOND, INDEX",
@@ -113,7 +113,7 @@ export class Instrument implements DSL.Instrument {
 
     // Currency should be 3 uppercase letters
     if (!/^[A-Z]{3}$/.test(currency)) {
-      return failure(
+      return Err(
         create(
           "INVALID_CURRENCY_FORMAT",
           "Currency must be a 3-letter ISO 4217 currency code (e.g., USD, EUR, JPY)",
@@ -123,7 +123,7 @@ export class Instrument implements DSL.Instrument {
       );
     }
 
-    return success(
+    return Ok(
       new Instrument(
         symbolResult.value,
         validatedIsin,
@@ -157,7 +157,7 @@ export class Instrument implements DSL.Instrument {
    */
   getIsin(): Result<string> {
     if (this.isin === null) {
-      return failure(
+      return Err(
         create(
           "ISIN_NOT_AVAILABLE",
           `Instrument ${this.symbol} does not have an ISIN`,
@@ -166,7 +166,7 @@ export class Instrument implements DSL.Instrument {
         )
       );
     }
-    return success(this.isin);
+    return Ok(this.isin);
   }
 
   /**

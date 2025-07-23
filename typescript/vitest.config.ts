@@ -8,7 +8,12 @@ export default defineConfig({
     environment: "node",
     globals: true,
     include: ["lib/tests/**/*.{test,spec}.ts"],
-    exclude: ["tests/**/*.bench.ts", "node_modules/**", "dist/**"],
+    exclude: [
+      "lib/tests/integration/**/*.integration.test.ts",
+      "tests/**/*.bench.ts",
+      "node_modules/**",
+      "dist/**",
+    ],
     // Fix CommonJS/ESM module resolution issues
     deps: {
       interopDefault: true,

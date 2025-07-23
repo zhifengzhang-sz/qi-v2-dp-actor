@@ -139,20 +139,23 @@ export interface MarketAnalyticsCalculator {
   calculateMarketAnalytics(
     market: Market,
     period: DateRange
-  ): Promise<Result<MarketAnalytics, any>>;
+  ): Promise<Result<MarketAnalytics, QiError>>;
   calculateDominanceMetrics(
     market: Market,
     period: DateRange
-  ): Promise<Result<DominanceMetrics, any>>;
-  calculateChangeMetrics(market: Market, period: DateRange): Promise<Result<ChangeMetrics, any>>;
+  ): Promise<Result<DominanceMetrics, QiError>>;
+  calculateChangeMetrics(
+    market: Market,
+    period: DateRange
+  ): Promise<Result<ChangeMetrics, QiError>>;
   calculateVolatilityMetrics(
     market: Market,
     period: DateRange
-  ): Promise<Result<VolatilityMetrics, any>>;
+  ): Promise<Result<VolatilityMetrics, QiError>>;
   calculateLiquidityMetrics(
     market: Market,
     period: DateRange
-  ): Promise<Result<LiquidityMetrics, any>>;
+  ): Promise<Result<LiquidityMetrics, QiError>>;
 }
 
 /**
@@ -161,15 +164,15 @@ export interface MarketAnalyticsCalculator {
 export interface AnalyticsAggregator {
   aggregateByExchange(
     analytics: MarketAnalytics[]
-  ): Promise<Result<Map<string, MarketAnalytics>, any>>;
+  ): Promise<Result<Map<string, MarketAnalytics>, QiError>>;
   aggregateByAssetClass(
     analytics: MarketAnalytics[]
-  ): Promise<Result<Map<string, MarketAnalytics>, any>>;
+  ): Promise<Result<Map<string, MarketAnalytics>, QiError>>;
   aggregateByTimeframe(
     analytics: MarketAnalytics[],
     timeframe: string
-  ): Promise<Result<MarketAnalytics[], any>>;
-  createMarketSummary(analytics: MarketAnalytics[]): Promise<Result<MarketSummary, any>>;
+  ): Promise<Result<MarketAnalytics[], QiError>>;
+  createMarketSummary(analytics: MarketAnalytics[]): Promise<Result<MarketSummary, QiError>>;
 }
 
 // Configuration Types
@@ -220,5 +223,5 @@ export interface AnalyticsMarketData {
 }
 
 // Re-export Result type for convenience
-import type { Result } from "@qi/base";
+import type { QiError, Result } from "@qi/base";
 export type { Result };

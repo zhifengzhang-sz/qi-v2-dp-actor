@@ -5,7 +5,7 @@
  */
 
 import type { Result } from "@qi/base";
-import { create, failure, success } from "@qi/base";
+import { Err, Ok, create } from "@qi/base";
 import type * as DSL from "../dsl/index.js";
 import { isNonNegativeDecimal, isPositiveDecimal, isValidTimestamp } from "./validation.js";
 
@@ -59,7 +59,7 @@ export class MarketDepth implements DSL.MarketDepth {
 
     // Validate bids array
     if (!Array.isArray(bids)) {
-      return failure(
+      return Err(
         create("INVALID_BIDS_TYPE", "Bids must be an array", "VALIDATION", {
           value: bids,
           type: typeof bids,
@@ -69,7 +69,7 @@ export class MarketDepth implements DSL.MarketDepth {
 
     // Validate asks array
     if (!Array.isArray(asks)) {
-      return failure(
+      return Err(
         create("INVALID_ASKS_TYPE", "Asks must be an array", "VALIDATION", {
           value: asks,
           type: typeof asks,
@@ -79,7 +79,7 @@ export class MarketDepth implements DSL.MarketDepth {
 
     // At least one side should have data
     if (bids.length === 0 && asks.length === 0) {
-      return failure(
+      return Err(
         create(
           "EMPTY_DEPTH",
           "Market depth must have at least one bid or ask level",
@@ -94,7 +94,7 @@ export class MarketDepth implements DSL.MarketDepth {
     for (let i = 0; i < bids.length; i++) {
       const bid = bids[i];
       if (bid === undefined) {
-        return failure(
+        return Err(
           create("UNDEFINED_BID_LEVEL", `Bid level at index ${i} is undefined`, "VALIDATION", {
             index: i,
           })
@@ -112,7 +112,7 @@ export class MarketDepth implements DSL.MarketDepth {
     for (let i = 0; i < asks.length; i++) {
       const ask = asks[i];
       if (ask === undefined) {
-        return failure(
+        return Err(
           create("UNDEFINED_ASK_LEVEL", `Ask level at index ${i} is undefined`, "VALIDATION", {
             index: i,
           })
@@ -130,7 +130,7 @@ export class MarketDepth implements DSL.MarketDepth {
       const prevPrice = Number(validatedBids[i - 1]?.price);
       const currPrice = Number(validatedBids[i]?.price);
       if (currPrice >= prevPrice) {
-        return failure(
+        return Err(
           create(
             "INVALID_BID_ORDERING",
             "Bid levels must be in descending price order",
@@ -150,7 +150,7 @@ export class MarketDepth implements DSL.MarketDepth {
       const prevPrice = Number(validatedAsks[i - 1]?.price);
       const currPrice = Number(validatedAsks[i]?.price);
       if (currPrice <= prevPrice) {
-        return failure(
+        return Err(
           create(
             "INVALID_ASK_ORDERING",
             "Ask levels must be in ascending price order",
@@ -170,7 +170,7 @@ export class MarketDepth implements DSL.MarketDepth {
       const bestBid = Number(validatedBids[0]?.price);
       const bestAsk = Number(validatedAsks[0]?.price);
       if (bestAsk < bestBid) {
-        return failure(
+        return Err(
           create(
             "CROSSED_MARKET",
             "Best ask price must be greater than or equal to best bid price",
@@ -192,7 +192,7 @@ export class MarketDepth implements DSL.MarketDepth {
         !Number.isInteger(sequenceNumber) ||
         sequenceNumber < 0
       ) {
-        return failure(
+        return Err(
           create(
             "INVALID_SEQUENCE_NUMBER",
             "Sequence number must be a non-negative integer",
@@ -223,7 +223,7 @@ export class MarketDepth implements DSL.MarketDepth {
       validatedTotalAskSize = totalAskResult.value;
     }
 
-    return success(
+    return Ok(
       new MarketDepth(
         timestampResult.value,
         validatedBids,
@@ -248,7 +248,7 @@ export class MarketDepth implements DSL.MarketDepth {
     index: number
   ): Result<DSL.DepthLevel> {
     if (level === null || typeof level !== "object") {
-      return failure(
+      return Err(
         create("INVALID_DEPTH_LEVEL_TYPE", `${side} level must be an object`, "VALIDATION", {
           side,
           index,
@@ -263,7 +263,7 @@ export class MarketDepth implements DSL.MarketDepth {
 
     // Validate price
     if (typeof price !== "string") {
-      return failure(
+      return Err(
         create(
           "INVALID_DEPTH_LEVEL_PRICE_TYPE",
           `${side} level price must be a string`,
@@ -280,7 +280,7 @@ export class MarketDepth implements DSL.MarketDepth {
 
     // Validate size
     if (typeof size !== "string") {
-      return failure(
+      return Err(
         create(
           "INVALID_DEPTH_LEVEL_SIZE_TYPE",
           `${side} level size must be a string`,
@@ -297,7 +297,7 @@ export class MarketDepth implements DSL.MarketDepth {
 
     // Validate level number
     if (typeof levelNum !== "number" || !Number.isInteger(levelNum) || levelNum < 1) {
-      return failure(
+      return Err(
         create(
           "INVALID_DEPTH_LEVEL_NUMBER",
           `${side} level number must be a positive integer`,
@@ -307,7 +307,7 @@ export class MarketDepth implements DSL.MarketDepth {
       );
     }
 
-    return success({
+    return Ok({
       price: priceResult.value,
       size: sizeResult.value,
       level: levelNum,

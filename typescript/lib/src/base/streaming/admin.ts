@@ -5,7 +5,7 @@
  * and @qi/core infrastructure integration for proper observability and error handling.
  */
 
-import { type Result, create, failure, flatMap, fromAsyncTryCatch, match, success } from "@qi/base";
+import { Err, Ok, type Result, create, flatMap, fromAsyncTryCatch, match } from "@qi/base";
 import type { QiError } from "@qi/base";
 import type { Logger } from "@qi/core";
 import { type Admin, type ITopicConfig, ITopicMetadata, type Kafka } from "kafkajs";
@@ -43,7 +43,7 @@ export class StreamingAdmin implements IStreamingAdmin {
 
     if (this.connected) {
       opLogger.debug("Admin client already connected");
-      return success(undefined);
+      return Ok(undefined);
     }
 
     opLogger.info("Connecting admin client", {
@@ -72,9 +72,9 @@ export class StreamingAdmin implements IStreamingAdmin {
         );
 
         opLogger.error("Admin client connection failed", undefined, {
-          code: qiError.code,
-          category: qiError.category,
-          error: qiError.message,
+          errorCode: qiError.code,
+          errorCategory: qiError.category,
+          errorMessage: qiError.message,
         });
 
         return qiError;
@@ -87,7 +87,7 @@ export class StreamingAdmin implements IStreamingAdmin {
 
     if (!this.connected || !this.admin) {
       opLogger.debug("Admin client already disconnected");
-      return success(undefined);
+      return Ok(undefined);
     }
 
     opLogger.info("Disconnecting admin client");
@@ -109,9 +109,9 @@ export class StreamingAdmin implements IStreamingAdmin {
         );
 
         opLogger.error("Admin client disconnection failed", undefined, {
-          code: qiError.code,
-          category: qiError.category,
-          error: qiError.message,
+          errorCode: qiError.code,
+          errorCategory: qiError.category,
+          errorMessage: qiError.message,
         });
         return qiError;
       }
@@ -140,7 +140,7 @@ export class StreamingAdmin implements IStreamingAdmin {
         { operation: "createTopics", topics: topics.map((t) => t.topic) }
       );
       opLogger.error("Create topics failed - admin not connected", new Error(error.message));
-      return failure(error);
+      return Err(error);
     }
 
     // Step 1: Validate topic configs (sync operation)
@@ -155,19 +155,19 @@ export class StreamingAdmin implements IStreamingAdmin {
     return fromAsyncTryCatch(
       async () => {
         opLogger.info("Creating topics", {
-          topics: validatedTopics.map((t: any) => ({
+          topics: validatedTopics.map((t: TopicConfig) => ({
             name: t.topic,
             partitions: t.numPartitions,
             replicationFactor: t.replicationFactor,
           })),
         });
 
-        const kafkaTopics: ITopicConfig[] = validatedTopics.map((topic: any) => ({
+        const kafkaTopics: ITopicConfig[] = validatedTopics.map((topic: TopicConfig) => ({
           topic: topic.topic,
           numPartitions: topic.numPartitions ?? 1,
           replicationFactor: topic.replicationFactor ?? 1,
           ...(topic.configEntries && {
-            configEntries: topic.configEntries.map((entry: any) => ({
+            configEntries: topic.configEntries.map((entry: { name: string; value: string }) => ({
               name: entry.name,
               value: entry.value,
             })),
@@ -179,9 +179,7 @@ export class StreamingAdmin implements IStreamingAdmin {
           waitForLeaders: true,
         });
 
-        opLogger.info("Topics created successfully", {
-          topicNames: validatedTopics.map((t: any) => t.topic),
-        });
+        opLogger.info("Topics created successfully");
 
         return undefined;
       },
@@ -193,9 +191,9 @@ export class StreamingAdmin implements IStreamingAdmin {
         );
 
         opLogger.error("Topic creation failed", undefined, {
-          code: qiError.code,
-          category: qiError.category,
-          error: qiError.message,
+          errorCode: qiError.code,
+          errorCategory: qiError.category,
+          errorMessage: qiError.message,
         });
         return qiError;
       }
@@ -216,7 +214,7 @@ export class StreamingAdmin implements IStreamingAdmin {
         { operation: "deleteTopics", topics: topicNames }
       );
       opLogger.error("Delete topics failed - admin not connected", new Error(error.message));
-      return failure(error);
+      return Err(error);
     }
 
     // Step 1: Validate topic names (sync operation)
@@ -230,15 +228,13 @@ export class StreamingAdmin implements IStreamingAdmin {
     // Step 2: Delete topics using fromAsyncTryCatch
     return fromAsyncTryCatch(
       async () => {
-        opLogger.info("Deleting topics", { topicNames: validatedNames });
+        opLogger.info("Deleting topics");
 
         await this.admin?.deleteTopics({
           topics: [...validatedNames],
         });
 
-        opLogger.info("Topics deleted successfully", {
-          topicNames: validatedNames,
-        });
+        opLogger.info("Topics deleted successfully");
 
         return undefined;
       },
@@ -250,9 +246,9 @@ export class StreamingAdmin implements IStreamingAdmin {
         );
 
         opLogger.error("Topic deletion failed", undefined, {
-          code: qiError.code,
-          category: qiError.category,
-          error: qiError.message,
+          errorCode: qiError.code,
+          errorCategory: qiError.category,
+          errorMessage: qiError.message,
         });
         return qiError;
       }
@@ -269,7 +265,7 @@ export class StreamingAdmin implements IStreamingAdmin {
         { operation: "listTopics" }
       );
       opLogger.error("List topics failed - admin not connected", new Error(error.message));
-      return failure(error);
+      return Err(error);
     }
 
     opLogger.debug("Listing topics");
@@ -278,7 +274,9 @@ export class StreamingAdmin implements IStreamingAdmin {
       async () => {
         const topics = await this.admin?.listTopics();
         if (!topics) {
-          throw new Error("List topics operation failed - no topics returned");
+          // Return empty array as valid result rather than throwing
+          opLogger.warn("List topics returned undefined, treating as empty list");
+          return [];
         }
 
         opLogger.debug("Topics listed successfully", {
@@ -296,9 +294,9 @@ export class StreamingAdmin implements IStreamingAdmin {
         );
 
         opLogger.error("Topic listing failed", undefined, {
-          code: qiError.code,
-          category: qiError.category,
-          error: qiError.message,
+          errorCode: qiError.code,
+          errorCategory: qiError.category,
+          errorMessage: qiError.message,
         });
         return qiError;
       }
@@ -321,11 +319,11 @@ export class StreamingAdmin implements IStreamingAdmin {
         { operation: "getTopicMetadata", topics }
       );
       opLogger.error("Get topic metadata failed - admin not connected", new Error(error.message));
-      return failure(error);
+      return Err(error);
     }
 
     // Step 1: Validate topic names (sync operation)
-    const topicsResult = this.validateTopicNames(topics);
+    const topicsResult = this.validateTopicNamesForMetadata(topics);
     if (topicsResult.tag === "failure") {
       return topicsResult;
     }
@@ -335,13 +333,15 @@ export class StreamingAdmin implements IStreamingAdmin {
     // Step 2: Fetch metadata using fromAsyncTryCatch
     return fromAsyncTryCatch(
       async () => {
-        opLogger.debug("Fetching topic metadata", { topics: validatedTopics });
+        opLogger.debug("Fetching topic metadata");
 
         const metadata = await this.admin?.fetchTopicMetadata({
           topics: [...validatedTopics],
         });
         if (!metadata) {
-          throw new Error("Fetch topic metadata operation failed - no metadata returned");
+          // Return empty metadata as valid result rather than throwing
+          opLogger.warn("Fetch topic metadata returned undefined, treating as empty metadata");
+          return [];
         }
 
         const topicMetadata: TopicMetadata[] = metadata.topics.map((topic) => ({
@@ -369,9 +369,9 @@ export class StreamingAdmin implements IStreamingAdmin {
         );
 
         opLogger.error("Topic metadata fetch failed", undefined, {
-          code: qiError.code,
-          category: qiError.category,
-          error: qiError.message,
+          errorCode: qiError.code,
+          errorCategory: qiError.category,
+          errorMessage: qiError.message,
         });
         return qiError;
       }
@@ -385,9 +385,9 @@ export class StreamingAdmin implements IStreamingAdmin {
   private createAdminInstance(): Result<void, QiError> {
     try {
       this.admin = this.kafka.admin();
-      return success(undefined);
+      return Ok(undefined);
     } catch (error) {
-      return failure(
+      return Err(
         this.createStreamingError(
           "STREAMING_CONNECTION_FAILED",
           `Failed to create admin instance: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -401,8 +401,8 @@ export class StreamingAdmin implements IStreamingAdmin {
     topics: readonly TopicConfig[]
   ): Result<readonly TopicConfig[], QiError> {
     if (!topics || topics.length === 0) {
-      return failure(
-        this.createStreamingError("STREAMING_INVALID_CONFIG", "Topic list cannot be empty", {
+      return Err(
+        this.createStreamingError("STREAMING_TOPIC_CREATE_FAILED", "Topic list cannot be empty", {
           operation: "validateTopicConfigs",
         })
       );
@@ -410,9 +410,9 @@ export class StreamingAdmin implements IStreamingAdmin {
 
     const invalidTopics = topics.filter((topic) => !topic.topic || topic.topic.trim().length === 0);
     if (invalidTopics.length > 0) {
-      return failure(
+      return Err(
         this.createStreamingError(
-          "STREAMING_INVALID_CONFIG",
+          "STREAMING_TOPIC_CREATE_FAILED",
           "All topic names must be non-empty strings",
           { operation: "validateTopicConfigs", invalidTopics: invalidTopics.length }
         )
@@ -423,9 +423,9 @@ export class StreamingAdmin implements IStreamingAdmin {
       (topic) => topic.numPartitions !== undefined && topic.numPartitions < 1
     );
     if (invalidPartitions.length > 0) {
-      return failure(
+      return Err(
         this.createStreamingError(
-          "STREAMING_INVALID_CONFIG",
+          "STREAMING_TOPIC_CREATE_FAILED",
           "Number of partitions must be at least 1",
           {
             operation: "validateTopicConfigs",
@@ -439,9 +439,9 @@ export class StreamingAdmin implements IStreamingAdmin {
       (topic) => topic.replicationFactor !== undefined && topic.replicationFactor < 1
     );
     if (invalidReplication.length > 0) {
-      return failure(
+      return Err(
         this.createStreamingError(
-          "STREAMING_INVALID_CONFIG",
+          "STREAMING_TOPIC_CREATE_FAILED",
           "Replication factor must be at least 1",
           {
             operation: "validateTopicConfigs",
@@ -451,30 +451,59 @@ export class StreamingAdmin implements IStreamingAdmin {
       );
     }
 
-    return success(topics);
+    return Ok(topics);
   }
 
   private validateTopicNames(topicNames: readonly string[]): Result<readonly string[], QiError> {
     if (!topicNames || topicNames.length === 0) {
-      return failure(
-        this.createStreamingError("STREAMING_INVALID_CONFIG", "Topic name list cannot be empty", {
-          operation: "validateTopicNames",
-        })
+      return Err(
+        this.createStreamingError(
+          "STREAMING_TOPIC_DELETE_FAILED",
+          "Topic name list cannot be empty",
+          {
+            operation: "validateTopicNames",
+          }
+        )
       );
     }
 
     const invalidNames = topicNames.filter((name) => !name || name.trim().length === 0);
     if (invalidNames.length > 0) {
-      return failure(
+      return Err(
         this.createStreamingError(
-          "STREAMING_INVALID_CONFIG",
+          "STREAMING_TOPIC_DELETE_FAILED",
           "All topic names must be non-empty strings",
           { operation: "validateTopicNames", invalidNames }
         )
       );
     }
 
-    return success(topicNames);
+    return Ok(topicNames);
+  }
+
+  private validateTopicNamesForMetadata(
+    topicNames: readonly string[]
+  ): Result<readonly string[], QiError> {
+    if (!topicNames || topicNames.length === 0) {
+      return Err(
+        this.createStreamingError("STREAMING_METADATA_FAILED", "Topic name list cannot be empty", {
+          operation: "validateTopicNamesForMetadata",
+        })
+      );
+    }
+
+    const invalidNames = topicNames.filter((name) => !name || name.trim().length === 0);
+    if (invalidNames.length > 0) {
+      return Err(
+        this.createStreamingError(
+          "STREAMING_METADATA_FAILED",
+          "All topic names must be non-empty strings",
+          { operation: "validateTopicNamesForMetadata", invalidNames }
+        )
+      );
+    }
+
+    return Ok(topicNames);
   }
 
   private createStreamingError(

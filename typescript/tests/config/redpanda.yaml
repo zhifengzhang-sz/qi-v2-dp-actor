@@ -1,0 +1,99 @@
+# Redpanda Integration Test Configuration
+# Environment: Local Development
+
+redpanda:
+  brokers:
+    - "localhost:19092"
+  clientId: "qi-dp-actor-yaml-test"
+  connectionTimeout: 5000
+  requestTimeout: 10000
+  ssl: false
+  retry:
+    initialRetryTime: 100
+    retries: 3
+
+# Topic Configurations
+topics:
+  integration-basic:
+    name: "qi-yaml-integration-basic"
+    partitions: 3
+    replicationFactor: 1
+    configs:
+      cleanup.policy: "delete"
+      retention.ms: "300000"  # 5 minutes
+      segment.ms: "60000"     # 1 minute
+
+  integration-batch:
+    name: "qi-yaml-integration-batch"
+    partitions: 6
+    replicationFactor: 1
+    configs:
+      cleanup.policy: "delete"
+      retention.ms: "600000"      # 10 minutes
+      max.message.bytes: "1048576" # 1MB
+
+  performance-test:
+    name: "qi-yaml-performance-test"
+    partitions: 12
+    replicationFactor: 1
+    configs:
+      cleanup.policy: "delete"
+      retention.ms: "120000"       # 2 minutes
+      segment.ms: "30000"          # 30 seconds
+      compression.type: "snappy"
+
+  error-simulation:
+    name: "qi-yaml-error-simulation"
+    partitions: 1
+    replicationFactor: 1
+    configs:
+      cleanup.policy: "delete"
+      retention.ms: "60000"        # 1 minute
+      max.message.bytes: "1024"    # Very small for testing limits
+
+# Test Timeouts (milliseconds)
+timeouts:
+  connection: 10000   # 10 seconds
+  operation: 15000    # 15 seconds  
+  performance: 30000  # 30 seconds
+  cleanup: 15000      # 15 seconds
+
+# Retry Configuration
+retry:
+  maxAttempts: 3
+  baseDelayMs: 100
+  maxDelayMs: 2000
+  backoffMultiplier: 2
+
+# Environment-specific overrides
+environments:
+  local:
+    redpanda:
+      brokers: ["localhost:19092"]
+    timeouts:
+      connection: 8000
+      
+  ci:
+    redpanda:
+      brokers: ["redpanda:9092"]
+      connectionTimeout: 15000
+    timeouts:
+      connection: 20000
+      operation: 25000
+    retry:
+      maxAttempts: 5
+      
+  production-like:
+    redpanda:
+      brokers: ["prod-redpanda:9092"]
+      ssl: true
+      sasl:
+        mechanism: "scram-sha-256"
+        username: "${REDPANDA_USERNAME}"
+        password: "${REDPANDA_PASSWORD}"
+    timeouts:
+      connection: 12000
+      operation: 18000
+    retry:
+      maxAttempts: 8
+      baseDelayMs: 500

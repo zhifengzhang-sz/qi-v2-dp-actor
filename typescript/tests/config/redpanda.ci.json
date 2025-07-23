@@ -1,0 +1,58 @@
+{
+  "redpanda": {
+    "brokers": ["redpanda:9092"],
+    "clientId": "qi-dp-actor-ci-test",
+    "connectionTimeout": 10000,
+    "requestTimeout": 15000,
+    "ssl": false,
+    "retry": {
+      "initialRetryTime": 200,
+      "retries": 5
+    }
+  },
+  "topics": {
+    "integration-basic": {
+      "name": "qi-ci-integration-basic",
+      "partitions": 2,
+      "replicationFactor": 1,
+      "configs": {
+        "cleanup.policy": "delete",
+        "retention.ms": "180000",
+        "segment.ms": "30000"
+      }
+    },
+    "integration-batch": {
+      "name": "qi-ci-integration-batch",
+      "partitions": 4,
+      "replicationFactor": 1,
+      "configs": {
+        "cleanup.policy": "delete",
+        "retention.ms": "300000",
+        "max.message.bytes": "524288"
+      }
+    },
+    "performance-test": {
+      "name": "qi-ci-performance-test",
+      "partitions": 8,
+      "replicationFactor": 1,
+      "configs": {
+        "cleanup.policy": "delete",
+        "retention.ms": "60000",
+        "segment.ms": "15000",
+        "compression.type": "lz4"
+      }
+    }
+  },
+  "timeouts": {
+    "connection": 15000,
+    "operation": 20000,
+    "performance": 60000,
+    "cleanup": 30000
+  },
+  "retry": {
+    "maxAttempts": 5,
+    "baseDelayMs": 200,
+    "maxDelayMs": 5000,
+    "backoffMultiplier": 2
+  }
+}

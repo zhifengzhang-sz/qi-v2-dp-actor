@@ -3,8 +3,8 @@
  * Implements: docs/utils/md/analytics.md Wrapper Pattern and Utilities
  */
 
-import { failure, success } from "@qi/base";
-import type { Result } from "@qi/base";
+import { Err, Ok } from "@qi/base";
+import type { QiError, Result } from "@qi/base";
 import type { DataContext } from "../../../dsl/index.js";
 import { createMarketDataError } from "../errors.js";
 import type { AnalyticsMarketData, MarketAnalytics } from "./types.js";
@@ -21,10 +21,10 @@ import { isValidMarketAnalytics } from "./validation.js";
 export function createAnalyticsMarketData(
   context: DataContext,
   analytics: MarketAnalytics
-): Result<AnalyticsMarketData, any> {
+): Result<AnalyticsMarketData, QiError> {
   // Validate context
   if (!context || typeof context !== "object") {
-    return failure(
+    return Err(
       createMarketDataError(
         "INVALID_CONTEXT",
         "Context must be a valid DataContext object",
@@ -39,7 +39,7 @@ export function createAnalyticsMarketData(
 
   // Validate analytics
   if (!isValidMarketAnalytics(analytics)) {
-    return failure(
+    return Err(
       createMarketDataError("INVALID_ANALYTICS", "Analytics data failed validation", "VALIDATION", {
         value: analytics,
       })
@@ -51,5 +51,5 @@ export function createAnalyticsMarketData(
     coreData: analytics,
   };
 
-  return success(analyticsData);
+  return Ok(analyticsData);
 }

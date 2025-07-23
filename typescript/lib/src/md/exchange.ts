@@ -5,7 +5,7 @@
  */
 
 import type { Result } from "@qi/base";
-import { create, failure, success } from "@qi/base";
+import { Err, Ok, create, flatMap } from "@qi/base";
 import type * as DSL from "../dsl/index.js";
 import { isNonEmptyString } from "./validation.js";
 
@@ -26,76 +26,75 @@ export class Exchange implements DSL.Exchange {
    * @returns Result<Exchange> with validation
    */
   static create(id: string, name: string, mic: string | null, timezone: string): Result<Exchange> {
-    // Validate id
-    const idResult = isNonEmptyString(id, "id");
-    if (idResult.tag === "failure") {
-      return idResult;
-    }
+    // Validate using flatMap composition
+    return flatMap(
+      (validId) =>
+        flatMap(
+          (validName) =>
+            flatMap(
+              (validTimezone) => {
+                // Validate optional MIC code
+                let validatedMic: string | null = null;
+                if (mic !== null) {
+                  if (typeof mic !== "string") {
+                    return Err(
+                      create(
+                        "INVALID_MIC_TYPE",
+                        "MIC code must be a string or null",
+                        "VALIDATION",
+                        {
+                          value: mic,
+                          type: typeof mic,
+                        }
+                      )
+                    );
+                  }
 
-    // Validate name
-    const nameResult = isNonEmptyString(name, "name");
-    if (nameResult.tag === "failure") {
-      return nameResult;
-    }
+                  if (mic.trim() === "") {
+                    return Err(
+                      create(
+                        "INVALID_MIC_EMPTY",
+                        "MIC code cannot be empty (use null if not available)",
+                        "VALIDATION",
+                        { value: mic }
+                      )
+                    );
+                  }
 
-    // Validate optional MIC code
-    let validatedMic: string | null = null;
-    if (mic !== null) {
-      if (typeof mic !== "string") {
-        return failure(
-          create("INVALID_MIC_TYPE", "MIC code must be a string or null", "VALIDATION", {
-            value: mic,
-            type: typeof mic,
-          })
-        );
-      }
+                  // MIC codes should be 4 uppercase letters
+                  if (!/^[A-Z]{4}$/.test(mic)) {
+                    return Err(
+                      create(
+                        "INVALID_MIC_FORMAT",
+                        "MIC code must be 4 uppercase letters (ISO 10383 format)",
+                        "VALIDATION",
+                        { value: mic, expectedFormat: "XXXX (four uppercase letters)" }
+                      )
+                    );
+                  }
 
-      if (mic.trim() === "") {
-        return failure(
-          create(
-            "INVALID_MIC_EMPTY",
-            "MIC code cannot be empty (use null if not available)",
-            "VALIDATION",
-            { value: mic }
-          )
-        );
-      }
+                  validatedMic = mic;
+                }
 
-      // MIC codes should be 4 uppercase letters
-      if (!/^[A-Z]{4}$/.test(mic)) {
-        return failure(
-          create(
-            "INVALID_MIC_FORMAT",
-            "MIC code must be 4 uppercase letters (ISO 10383 format)",
-            "VALIDATION",
-            { value: mic, expectedFormat: "XXXX (four uppercase letters)" }
-          )
-        );
-      }
+                // Basic IANA timezone format validation
+                if (!/^[A-Za-z]+\/[A-Za-z_]+$/.test(validTimezone) && validTimezone !== "UTC") {
+                  return Err(
+                    create(
+                      "INVALID_TIMEZONE_FORMAT",
+                      "Timezone must be a valid IANA timezone identifier (e.g., America/New_York, Europe/London, UTC)",
+                      "VALIDATION",
+                      { value: validTimezone, expectedFormat: "Region/City or UTC" }
+                    )
+                  );
+                }
 
-      validatedMic = mic;
-    }
-
-    // Validate timezone
-    const timezoneResult = isNonEmptyString(timezone, "timezone");
-    if (timezoneResult.tag === "failure") {
-      return timezoneResult;
-    }
-
-    // Basic IANA timezone format validation
-    if (!/^[A-Za-z]+\/[A-Za-z_]+$/.test(timezone) && timezone !== "UTC") {
-      return failure(
-        create(
-          "INVALID_TIMEZONE_FORMAT",
-          "Timezone must be a valid IANA timezone identifier (e.g., America/New_York, Europe/London, UTC)",
-          "VALIDATION",
-          { value: timezone, expectedFormat: "Region/City or UTC" }
-        )
-      );
-    }
-
-    return success(
-      new Exchange(idResult.value, nameResult.value, validatedMic, timezoneResult.value)
+                return Ok(new Exchange(validId, validName, validatedMic, validTimezone));
+              },
+              isNonEmptyString(timezone, "timezone")
+            ),
+          isNonEmptyString(name, "name")
+        ),
+      isNonEmptyString(id, "id")
     );
   }
 
@@ -122,14 +121,14 @@ export class Exchange implements DSL.Exchange {
    */
   getMic(): Result<string> {
     if (this.mic === null) {
-      return failure(
+      return Err(
         create("MIC_NOT_AVAILABLE", `Exchange ${this.id} does not have a MIC code`, "VALIDATION", {
           exchangeId: this.id,
           name: this.name,
         })
       );
     }
-    return success(this.mic);
+    return Ok(this.mic);
   }
 
   /**

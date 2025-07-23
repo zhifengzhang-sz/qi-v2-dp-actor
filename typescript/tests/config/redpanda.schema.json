@@ -1,0 +1,187 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Redpanda Test Configuration Schema",
+  "description": "Schema for validating Redpanda integration test configurations",
+  "type": "object",
+  "required": ["redpanda", "topics", "timeouts", "retry"],
+  "properties": {
+    "redpanda": {
+      "type": "object",
+      "required": ["brokers", "clientId", "connectionTimeout", "requestTimeout"],
+      "properties": {
+        "brokers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9.-]+:[0-9]+$"
+          },
+          "minItems": 1,
+          "description": "List of Redpanda broker addresses"
+        },
+        "clientId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Kafka client identifier"
+        },
+        "connectionTimeout": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 60000,
+          "description": "Connection timeout in milliseconds"
+        },
+        "requestTimeout": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 120000,
+          "description": "Request timeout in milliseconds"
+        },
+        "ssl": {
+          "type": "boolean",
+          "description": "Enable SSL/TLS encryption"
+        },
+        "retry": {
+          "type": "object",
+          "required": ["initialRetryTime", "retries"],
+          "properties": {
+            "initialRetryTime": {
+              "type": "integer",
+              "minimum": 50,
+              "maximum": 5000,
+              "description": "Initial retry delay in milliseconds"
+            },
+            "retries": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 20,
+              "description": "Maximum number of retries"
+            }
+          }
+        },
+        "sasl": {
+          "type": "object",
+          "required": ["mechanism", "username", "password"],
+          "properties": {
+            "mechanism": {
+              "type": "string",
+              "enum": ["plain", "scram-sha-256", "scram-sha-512"],
+              "description": "SASL authentication mechanism"
+            },
+            "username": {
+              "type": "string",
+              "minLength": 1,
+              "description": "SASL username"
+            },
+            "password": {
+              "type": "string",
+              "minLength": 1,
+              "description": "SASL password"
+            }
+          }
+        }
+      }
+    },
+    "topics": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z0-9-_]+$": {
+          "type": "object",
+          "required": ["name", "partitions", "replicationFactor"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9._-]+$",
+              "minLength": 1,
+              "maxLength": 249,
+              "description": "Topic name (Kafka naming rules)"
+            },
+            "partitions": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "description": "Number of partitions"
+            },
+            "replicationFactor": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10,
+              "description": "Replication factor"
+            },
+            "configs": {
+              "type": "object",
+              "patternProperties": {
+                "^[a-zA-Z0-9._-]+$": {
+                  "type": "string",
+                  "description": "Topic configuration value"
+                }
+              },
+              "description": "Topic-specific configuration overrides"
+            }
+          }
+        }
+      },
+      "description": "Topic configurations for tests"
+    },
+    "timeouts": {
+      "type": "object",
+      "required": ["connection", "operation", "performance", "cleanup"],
+      "properties": {
+        "connection": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 60000,
+          "description": "Test connection timeout in milliseconds"
+        },
+        "operation": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 120000,
+          "description": "Test operation timeout in milliseconds"
+        },
+        "performance": {
+          "type": "integer",
+          "minimum": 5000,
+          "maximum": 300000,
+          "description": "Performance test timeout in milliseconds"
+        },
+        "cleanup": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 60000,
+          "description": "Test cleanup timeout in milliseconds"
+        }
+      }
+    },
+    "retry": {
+      "type": "object",
+      "required": ["maxAttempts", "baseDelayMs", "maxDelayMs", "backoffMultiplier"],
+      "properties": {
+        "maxAttempts": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20,
+          "description": "Maximum retry attempts"
+        },
+        "baseDelayMs": {
+          "type": "integer",
+          "minimum": 10,
+          "maximum": 5000,
+          "description": "Base retry delay in milliseconds"
+        },
+        "maxDelayMs": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 30000,
+          "description": "Maximum retry delay in milliseconds"
+        },
+        "backoffMultiplier": {
+          "type": "number",
+          "minimum": 1.0,
+          "maximum": 5.0,
+          "description": "Exponential backoff multiplier"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

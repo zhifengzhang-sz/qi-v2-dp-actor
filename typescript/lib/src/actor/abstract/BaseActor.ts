@@ -1,4 +1,4 @@
-import { type Result, create, failure, flatMap, success } from "@qi/base";
+import { Err, Ok, type Result, create, flatMap } from "@qi/base";
 import type * as DSL from "../../dsl";
 
 /**
@@ -18,7 +18,7 @@ export abstract class BaseActor implements DSL.MarketDataContextManager {
   ): Promise<Result<DSL.DataContext>> {
     // Simple context creation - validate inputs then create
     if (!market || !exchange || !instrument) {
-      return failure(
+      return Err(
         create("CONTEXT_CREATION_ERROR", "Missing required context components", "VALIDATION", {
           hasMarket: !!market,
           hasExchange: !!exchange,
@@ -27,7 +27,7 @@ export abstract class BaseActor implements DSL.MarketDataContextManager {
       );
     }
 
-    return success({
+    return Ok({
       market,
       exchange,
       instrument,
@@ -37,7 +37,7 @@ export abstract class BaseActor implements DSL.MarketDataContextManager {
   async getContext(_query: DSL.ContextQuery): Promise<Result<DSL.DataContext[]>> {
     // Basic implementation - return current context
     // Concrete classes should override with proper query handling
-    return success([this.context]);
+    return Ok([this.context]);
   }
 
   async updateMarket(
@@ -45,13 +45,13 @@ export abstract class BaseActor implements DSL.MarketDataContextManager {
     market: DSL.Market
   ): Promise<Result<DSL.DataContext>> {
     if (!market) {
-      return failure(
+      return Err(
         create("CONTEXT_UPDATE_ERROR", "Market cannot be null or undefined", "VALIDATION", {
           originalContext: context,
         })
       );
     }
-    return success({ ...context, market });
+    return Ok({ ...context, market });
   }
 
   async updateExchange(
@@ -59,13 +59,13 @@ export abstract class BaseActor implements DSL.MarketDataContextManager {
     exchange: DSL.Exchange
   ): Promise<Result<DSL.DataContext>> {
     if (!exchange) {
-      return failure(
+      return Err(
         create("CONTEXT_UPDATE_ERROR", "Exchange cannot be null or undefined", "VALIDATION", {
           originalContext: context,
         })
       );
     }
-    return success({ ...context, exchange });
+    return Ok({ ...context, exchange });
   }
 
   async updateInstrument(
@@ -73,18 +73,18 @@ export abstract class BaseActor implements DSL.MarketDataContextManager {
     instrument: DSL.Instrument
   ): Promise<Result<DSL.DataContext>> {
     if (!instrument) {
-      return failure(
+      return Err(
         create("CONTEXT_UPDATE_ERROR", "Instrument cannot be null or undefined", "VALIDATION", {
           originalContext: context,
         })
       );
     }
-    return success({ ...context, instrument });
+    return Ok({ ...context, instrument });
   }
 
   async validateContext(context: DSL.DataContext): Promise<Result<void>> {
     if (!context.market || !context.exchange || !context.instrument) {
-      return failure(
+      return Err(
         create(
           "CONTEXT_VALIDATION_ERROR",
           "Invalid context: missing required fields",
@@ -97,7 +97,7 @@ export abstract class BaseActor implements DSL.MarketDataContextManager {
         )
       );
     }
-    return success(undefined);
+    return Ok(undefined);
   }
 
   // Workflow abstraction using pure @qi/base functional patterns
@@ -107,11 +107,11 @@ export abstract class BaseActor implements DSL.MarketDataContextManager {
     operationContext: Record<string, unknown> = {}
   ): Promise<Result<T>> {
     return flatMap(
-      (result) => success(result), // Pass through successful results
+      (result) => Ok(result), // Pass through successful results
       await handlerPromise.catch((error) => {
         // Convert Promise rejections to Result failures using @qi/base
         const errorMessage = error instanceof Error ? error.message : String(error);
-        return failure(
+        return Err(
           create(errorType, `Operation failed: ${errorMessage}`, "SYSTEM", {
             context: this.context,
             operationContext,

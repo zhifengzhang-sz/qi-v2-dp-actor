@@ -7,8 +7,8 @@
  * with guaranteed precision.
  */
 
-import { failure, flatMap, success } from "@qi/base";
-import type { Result } from "@qi/base";
+import { Err, Ok, flatMap } from "@qi/base";
+import type { QiError, Result } from "@qi/base";
 import Decimal from "decimal.js";
 import { createMarketDataError } from "../errors.js";
 
@@ -40,19 +40,19 @@ export class FinancialDecimal {
    * @param value String, number, or Decimal input
    * @returns Result<FinancialDecimal> with validation
    */
-  static create(value: string | number | Decimal): Result<FinancialDecimal, any> {
+  static create(value: string | number | Decimal): Result<FinancialDecimal, QiError> {
     try {
       // Check for invalid inputs first
       if (typeof value === "number") {
         if (Number.isNaN(value)) {
-          return failure(
+          return Err(
             createMarketDataError("INVALID_DECIMAL", "Value cannot be NaN", "VALIDATION", {
               value: value,
             })
           );
         }
         if (!Number.isFinite(value)) {
-          return failure(
+          return Err(
             createMarketDataError("INVALID_DECIMAL", "Value must be finite", "VALIDATION", {
               value: value,
             })
@@ -61,9 +61,9 @@ export class FinancialDecimal {
       }
 
       const decimal = new Decimal(value);
-      return success(new FinancialDecimal(decimal));
+      return Ok(new FinancialDecimal(decimal));
     } catch (error) {
-      return failure(
+      return Err(
         createMarketDataError("DECIMAL_CREATION_ERROR", "Failed to create decimal", "VALIDATION", {
           value: value,
           error: error instanceof Error ? error.message : String(error),
@@ -77,16 +77,16 @@ export class FinancialDecimal {
    * @param value String, number, or Decimal input
    * @returns Result<FinancialDecimal> with price validation
    */
-  static createPrice(value: string | number | Decimal): Result<FinancialDecimal, any> {
+  static createPrice(value: string | number | Decimal): Result<FinancialDecimal, QiError> {
     return flatMap((result) => {
       if (!result.isPositive() || result.isZero()) {
-        return failure(
+        return Err(
           createMarketDataError("INVALID_PRICE", "Price must be positive", "VALIDATION", {
             value: value,
           })
         );
       }
-      return success(result);
+      return Ok(result);
     }, FinancialDecimal.create(value));
   }
 
@@ -95,16 +95,16 @@ export class FinancialDecimal {
    * @param value String, number, or Decimal input
    * @returns Result<FinancialDecimal> with size validation
    */
-  static createSize(value: string | number | Decimal): Result<FinancialDecimal, any> {
+  static createSize(value: string | number | Decimal): Result<FinancialDecimal, QiError> {
     return flatMap((result) => {
       if (result.isNegative()) {
-        return failure(
+        return Err(
           createMarketDataError("INVALID_SIZE", "Size must be non-negative", "VALIDATION", {
             value: value,
           })
         );
       }
-      return success(result);
+      return Ok(result);
     }, FinancialDecimal.create(value));
   }
 
@@ -142,9 +142,9 @@ export class FinancialDecimal {
    * @param other FinancialDecimal to divide by
    * @returns Result<FinancialDecimal> with quotient (handles division by zero)
    */
-  divide(other: FinancialDecimal): Result<FinancialDecimal, any> {
+  divide(other: FinancialDecimal): Result<FinancialDecimal, QiError> {
     if (other.isZero()) {
-      return failure(
+      return Err(
         createMarketDataError("DIVISION_BY_ZERO", "Cannot divide by zero", "VALIDATION", {
           oldValue: this.toString(),
           newValue: other.toString(),
@@ -153,9 +153,9 @@ export class FinancialDecimal {
     }
 
     try {
-      return success(new FinancialDecimal(this.decimal.div(other.decimal)));
+      return Ok(new FinancialDecimal(this.decimal.div(other.decimal)));
     } catch (error) {
-      return failure(
+      return Err(
         createMarketDataError("DIVISION_ERROR", "Division operation failed", "VALIDATION", {
           oldValue: this.toString(),
           newValue: other.toString(),
@@ -254,9 +254,9 @@ export class FinancialDecimal {
    * @param newValue New value for comparison
    * @returns Result<FinancialDecimal> with percentage change
    */
-  percentageChange(newValue: FinancialDecimal): Result<FinancialDecimal, any> {
+  percentageChange(newValue: FinancialDecimal): Result<FinancialDecimal, QiError> {
     if (this.isZero()) {
-      return failure(
+      return Err(
         createMarketDataError(
           "PERCENTAGE_CHANGE_ZERO_BASE",
           "Cannot calculate percentage change from zero",
@@ -274,9 +274,9 @@ export class FinancialDecimal {
       const difference = newValue.subtract(this);
       const ratio = difference.decimal.div(this.decimal);
       const percentage = ratio.mul(100);
-      return success(new FinancialDecimal(percentage));
+      return Ok(new FinancialDecimal(percentage));
     } catch (error) {
-      return failure(
+      return Err(
         createMarketDataError(
           "PERCENTAGE_CHANGE_ERROR",
           "Percentage change calculation failed",
@@ -297,9 +297,9 @@ export class FinancialDecimal {
    * @param newValue New value for comparison
    * @returns Result<FinancialDecimal> with basis points change
    */
-  basisPointsChange(newValue: FinancialDecimal): Result<FinancialDecimal, any> {
+  basisPointsChange(newValue: FinancialDecimal): Result<FinancialDecimal, QiError> {
     if (this.isZero()) {
-      return failure(
+      return Err(
         createMarketDataError(
           "BASIS_POINTS_ZERO_BASE",
           "Cannot calculate basis points from zero",
@@ -317,9 +317,9 @@ export class FinancialDecimal {
       const difference = newValue.subtract(this);
       const ratio = difference.decimal.div(this.decimal);
       const basisPoints = ratio.mul(10000);
-      return success(new FinancialDecimal(basisPoints));
+      return Ok(new FinancialDecimal(basisPoints));
     } catch (error) {
-      return failure(
+      return Err(
         createMarketDataError(
           "BASIS_POINTS_ERROR",
           "Basis points calculation failed",
@@ -346,9 +346,9 @@ export class FinancialDecimal {
   static calculateSpread(
     bid: FinancialDecimal,
     ask: FinancialDecimal
-  ): Result<FinancialDecimal, any> {
+  ): Result<FinancialDecimal, QiError> {
     if (ask.lessThan(bid)) {
-      return failure(
+      return Err(
         createMarketDataError(
           "CROSSED_MARKET",
           "Ask price cannot be less than bid price",
@@ -361,7 +361,7 @@ export class FinancialDecimal {
       );
     }
 
-    return success(ask.subtract(bid));
+    return Ok(ask.subtract(bid));
   }
 
   /**
@@ -374,7 +374,7 @@ export class FinancialDecimal {
   static calculateSpreadPercentage(
     bid: FinancialDecimal,
     ask: FinancialDecimal
-  ): Result<FinancialDecimal, any> {
+  ): Result<FinancialDecimal, QiError> {
     return flatMap(
       (spread) => {
         try {
@@ -384,7 +384,7 @@ export class FinancialDecimal {
           const midpoint = sum.decimal.div(two.decimal);
 
           if (midpoint.isZero()) {
-            return failure(
+            return Err(
               createMarketDataError(
                 "SPREAD_PERCENTAGE_ZERO_MID",
                 "Cannot calculate spread percentage with zero midpoint",
@@ -399,9 +399,9 @@ export class FinancialDecimal {
 
           // Calculate percentage: (spread / midpoint) * 100
           const percentage = spread.decimal.div(midpoint).mul(100);
-          return success(new FinancialDecimal(percentage));
+          return Ok(new FinancialDecimal(percentage));
         } catch (error) {
-          return failure(
+          return Err(
             createMarketDataError(
               "SPREAD_PERCENTAGE_ERROR",
               "Spread percentage calculation failed",
@@ -429,9 +429,9 @@ export class FinancialDecimal {
   static calculateWeightedAverage(
     prices: FinancialDecimal[],
     weights: FinancialDecimal[]
-  ): Result<FinancialDecimal, any> {
+  ): Result<FinancialDecimal, QiError> {
     if (prices.length !== weights.length) {
-      return failure(
+      return Err(
         createMarketDataError(
           "MISMATCHED_ARRAYS",
           "Prices and weights arrays must have same length",
@@ -445,7 +445,7 @@ export class FinancialDecimal {
     }
 
     if (prices.length === 0) {
-      return failure(
+      return Err(
         createMarketDataError(
           "EMPTY_ARRAYS",
           "Cannot calculate weighted average of empty arrays",
@@ -464,7 +464,7 @@ export class FinancialDecimal {
         const weight = weights[i];
 
         if (!price || !weight) {
-          return failure(
+          return Err(
             createMarketDataError(
               "INVALID_ARRAY_ELEMENT",
               "Invalid price or weight at index",
@@ -477,7 +477,7 @@ export class FinancialDecimal {
         }
 
         if (weight.isNegative()) {
-          return failure(
+          return Err(
             createMarketDataError("NEGATIVE_WEIGHT", "Weights cannot be negative", "VALIDATION", {
               value: i,
               size: Number(weight.toString()),
@@ -491,7 +491,7 @@ export class FinancialDecimal {
       }
 
       if (totalWeight.isZero()) {
-        return failure(
+        return Err(
           createMarketDataError("ZERO_TOTAL_WEIGHT", "Total weight cannot be zero", "VALIDATION", {
             size: Number(totalWeight.toString()),
           })
@@ -501,7 +501,7 @@ export class FinancialDecimal {
       const averageResult = weightedSum.divide(totalWeight);
       return averageResult;
     } catch (error) {
-      return failure(
+      return Err(
         createMarketDataError(
           "WEIGHTED_AVERAGE_ERROR",
           "Weighted average calculation failed",

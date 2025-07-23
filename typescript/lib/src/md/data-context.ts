@@ -5,7 +5,7 @@
  */
 
 import type { Result } from "@qi/base";
-import { create, failure, success } from "@qi/base";
+import { Err, Ok, create, flatMap } from "@qi/base";
 import type * as DSL from "../dsl/index.js";
 import { Exchange } from "./exchange.js";
 import { Instrument } from "./instrument.js";
@@ -32,7 +32,7 @@ export class DataContext implements DSL.DataContext {
   ): Result<DataContext> {
     // Validate market
     if (market === null || typeof market !== "object") {
-      return failure(
+      return Err(
         create("INVALID_MARKET", "Market must be a valid Market object", "VALIDATION", {
           value: market,
           type: typeof market,
@@ -42,7 +42,7 @@ export class DataContext implements DSL.DataContext {
 
     // Validate exchange
     if (exchange === null || typeof exchange !== "object") {
-      return failure(
+      return Err(
         create("INVALID_EXCHANGE", "Exchange must be a valid Exchange object", "VALIDATION", {
           value: exchange,
           type: typeof exchange,
@@ -52,7 +52,7 @@ export class DataContext implements DSL.DataContext {
 
     // Validate instrument
     if (instrument === null || typeof instrument !== "object") {
-      return failure(
+      return Err(
         create("INVALID_INSTRUMENT", "Instrument must be a valid Instrument object", "VALIDATION", {
           value: instrument,
           type: typeof instrument,
@@ -60,25 +60,15 @@ export class DataContext implements DSL.DataContext {
       );
     }
 
-    // Business rule: Market-Instrument compatibility validation
-    const compatibilityResult = DataContext.validateMarketInstrumentCompatibility(
-      market,
-      instrument
+    // Business rule validations using flatMap composition
+    return flatMap(
+      () =>
+        flatMap(
+          () => Ok(new DataContext(market, exchange, instrument)),
+          DataContext.validateExchangeMarketCompatibility(exchange, market)
+        ),
+      DataContext.validateMarketInstrumentCompatibility(market, instrument)
     );
-    if (compatibilityResult.tag === "failure") {
-      return compatibilityResult;
-    }
-
-    // Business rule: Exchange-Market region compatibility (optional but recommended)
-    const regionCompatibilityResult = DataContext.validateExchangeMarketCompatibility(
-      exchange,
-      market
-    );
-    if (regionCompatibilityResult.tag === "failure") {
-      return regionCompatibilityResult;
-    }
-
-    return success(new DataContext(market, exchange, instrument));
   }
 
   /**
@@ -102,7 +92,7 @@ export class DataContext implements DSL.DataContext {
   ): Result<void> {
     // Crypto instruments should typically be in CRYPTO markets
     if (instrument.assetClass === "CRYPTO" && market.type !== "CRYPTO") {
-      return failure(
+      return Err(
         create(
           "MARKET_INSTRUMENT_MISMATCH",
           "Crypto instruments should typically trade in CRYPTO markets",
@@ -118,7 +108,7 @@ export class DataContext implements DSL.DataContext {
 
     // Stocks should typically be in EQUITY markets
     if (instrument.assetClass === "STOCK" && market.type !== "EQUITY") {
-      return failure(
+      return Err(
         create(
           "MARKET_INSTRUMENT_MISMATCH",
           "Stock instruments should typically trade in EQUITY markets",
@@ -134,7 +124,7 @@ export class DataContext implements DSL.DataContext {
 
     // Currency instruments should typically be in FOREX markets
     if (instrument.assetClass === "CURRENCY" && market.type !== "FOREX") {
-      return failure(
+      return Err(
         create(
           "MARKET_INSTRUMENT_MISMATCH",
           "Currency instruments should typically trade in FOREX markets",
@@ -148,7 +138,7 @@ export class DataContext implements DSL.DataContext {
       );
     }
 
-    return success(undefined);
+    return Ok(undefined);
   }
 
   /**
@@ -171,7 +161,7 @@ export class DataContext implements DSL.DataContext {
       // Could be enhanced to return a warning type in the future
     }
 
-    return success(undefined);
+    return Ok(undefined);
   }
 
   /**

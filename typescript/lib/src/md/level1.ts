@@ -5,7 +5,7 @@
  */
 
 import type { Result } from "@qi/base";
-import { create, failure, flatMap, success } from "@qi/base";
+import { Err, Ok, create, flatMap } from "@qi/base";
 import type * as DSL from "../dsl/index.js";
 import { isOptionalNonEmptyString, isPositiveDecimal, isValidTimestamp } from "./validation.js";
 
@@ -62,11 +62,11 @@ export class Level1 implements DSL.Level1 {
       value: string | undefined,
       fieldName: string
     ): Result<string | undefined> => {
-      if (value === undefined) return success(undefined);
+      if (value === undefined) return Ok(undefined);
 
       const result = isValidTimestamp(value);
       if (result.tag === "failure") {
-        return failure(
+        return Err(
           create(
             `INVALID_${fieldName.toUpperCase()}`,
             `${fieldName} must be valid ISO 8601 format`,
@@ -78,7 +78,7 @@ export class Level1 implements DSL.Level1 {
           )
         );
       }
-      return success(result.value);
+      return Ok(result.value);
     };
 
     // Chain validation using functional composition
@@ -103,7 +103,7 @@ export class Level1 implements DSL.Level1 {
                                     const askPriceNum = Number(validAskPrice);
 
                                     if (askPriceNum < bidPriceNum) {
-                                      return failure(
+                                      return Err(
                                         create(
                                           "CROSSED_MARKET",
                                           "Ask price must be greater than or equal to bid price",
@@ -117,7 +117,7 @@ export class Level1 implements DSL.Level1 {
                                       );
                                     }
 
-                                    return success(
+                                    return Ok(
                                       new Level1(
                                         validTimestamp,
                                         validBidPrice,
