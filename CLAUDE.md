@@ -77,11 +77,11 @@ bun run test:watch   # Development testing
 
 **Primary Reference**: `typescript/CLAUDE.md` - Complete TypeScript guidance
 
-**Supporting Documentation**:
-- `typescript/docs/impl/context-continuation-protocol.md` - Session continuity
-- `typescript/docs/impl/qi-base-usage.md` - @qi/base Result<T> patterns  
-- `typescript/docs/impl/qi-core-usage.md` - @qi/core integration patterns
-- `typescript/docs/dsl/qi.dp.dsl.md` - TypeScript DSL specification
+**Knowledge System**: `typescript/docs/knowledge/` - Comprehensive project and @qi stack knowledge
+- **@qi Stack Learning**: `docs/knowledge/qi-stack/tutorial/` - Complete @qi competency development
+- **Implementation Patterns**: `docs/knowledge/qi-stack/usage/` - Production reference patterns
+- **Project Knowledge**: `docs/knowledge/project/` - Architecture, patterns, troubleshooting
+- **DSL Specification**: `docs/dsl/qi.dp.dsl.md` - TypeScript DSL behavioral contracts
 
 ## Memory System Integration
 

@@ -391,7 +391,7 @@ describe("StreamingConsumer - Real Redpanda Integration", () => {
       expect(isFailure(result)).toBe(true);
 
       const error = getError(result);
-      expect(error.code).toBe("STREAMING_SUBSCRIPTION_FAILED");
+      expect(error.code).toBe("STREAMING_INVALID_CONFIG");
       expect(error.category).toBe("SYSTEM");
 
       logger.info("✅ Correctly handled invalid subscription configuration");
