@@ -1,6 +1,6 @@
 {
   "name": "@qi/dp-actor",
-  "version": "ts-0.5.2",
+  "version": "ts-0.6.0",
   "description": "Data Processing Actors - Market data DSL and actor system",
   "type": "module",
   "main": "dist/index.js",

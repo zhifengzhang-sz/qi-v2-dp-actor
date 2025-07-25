@@ -1,6 +1,6 @@
+/// <reference types="vitest/config" />
+import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
-/// <reference types="vitest" />
-import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   plugins: [tsconfigPaths()],
@@ -16,7 +16,11 @@ export default defineConfig({
     ],
     // Fix CommonJS/ESM module resolution issues
     deps: {
-      interopDefault: true,
+      optimizer: {
+        ssr: {
+          include: ["@qi/base", "@qi/core", "@qi"],
+        },
+      },
     },
     coverage: {
       provider: "v8", // Note: Istanbul provider has compatibility issues with current Vitest version
@@ -47,9 +51,12 @@ export default defineConfig({
     hookTimeout: 10000,
   },
   resolve: {
+    preserveSymlinks: true,
     alias: {
+      // Workspace dependency aliases
       "@qi/base": new URL("../../qi-v2-qicore/typescript/dist/base.js", import.meta.url).pathname,
       "@qi/core": new URL("../../qi-v2-qicore/typescript/dist/core.js", import.meta.url).pathname,
+      // Local project aliases
       "@qi/dp": new URL("./lib/src", import.meta.url).pathname,
       "@qi/dp/dsl": new URL("./lib/src/dsl", import.meta.url).pathname,
       "@qi/dp/md": new URL("./lib/src/md", import.meta.url).pathname,

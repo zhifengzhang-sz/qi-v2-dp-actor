@@ -8,3 +8,6 @@ export * from "./abstract";
 
 // MCP implementation
 export * from "./mcp";
+
+// Redpanda implementation (ts-0.6.0 - Generic Concrete Implementations)
+export * from "./redpanda";

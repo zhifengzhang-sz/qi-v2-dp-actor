@@ -66,8 +66,8 @@ Since quick memory isn't working, manually update this section before /clear:
 
 **Current Session Context:**
 - Project: @qi/dp/actor - a low level modules system for data platform govened by dsl
-- Status: ✅ COMPLETED comprehensive unit testing for lib/src/actor with 112 new tests
-- Last worked on: Complete unit testing for MCP actor classes - ALL TESTS PASSING (599/599)
+- Status: 🚧 IMPLEMENTING Redpanda generic actors for ts-0.6.0 (ts-0.5.2 checked in)
+- Last worked on: Rewriting RepandaReader implementation - identified fundamental architecture flaws requiring complete rewrite with real KafkaJS integration and MD smart constructors
 
 **Tool Patterns That Work:**
 - retain `@qi/base` and `@qi/core` usage patterns  
@@ -81,10 +81,29 @@ Since quick memory isn't working, manually update this section before /clear:
 - MultiEdit for batch linter fixes (forEach → for...of conversions)
 
 **Key Discoveries This Session:**
-1. Successfully implemented comprehensive unit testing for all MCP actor classes using "test implementation pattern"
-2. Created 4 new test files: MCPBaseActor.test.ts (26), MCPMarketDataReader.test.ts (23), MCPMarketDataWriter.test.ts (30), MCPStreamingReader.test.ts (33)
-3. Fixed 4 Biome linter issues (forEach → for...of performance optimization)
-4. All 599 tests passing: 487 existing + 112 new MCP actor tests
-5. Verified NO fake/stub code exists in production codebase - all implementations are complete
-6. Integration tests: 30/31 passing (1 fails due to missing Kafka infrastructure, not code issues)
-7. Codebase is production-ready with proper Result<T> composition throughout
+1. CRITICAL: Current RepandaReader implementation is fundamentally flawed
+   - Uses wrong streaming infrastructure (lib/src/base/streaming instead of direct KafkaJS)
+   - Creates mock data instead of real Redpanda integration  
+   - Uses wrong DSL structure (data instead of coreData, adds non-existent metadata)
+   - Has many TypeScript compilation errors
+
+2. Successfully updated package.json to ts-0.5.2 and tagged/pushed the version
+
+3. Enhanced docs/knowledge/project/README.md with comprehensive patterns:
+   - KafkaJS integration patterns for Redpanda
+   - MCP SDK usage (@modelcontextprotocol/sdk)  
+   - MD smart constructor patterns (Price.create(), MarketData.create())
+   - Proper @qi/base Result<T> composition
+   - @qi/core Logger/Cache integration
+
+4. User provided clear feedback on architectural requirements:
+   - Must use concrete data classes in lib/src/md
+   - Connection infrastructure needed to communicate with Redpanda
+   - DSL defines contracts only, patterns come from @qi/base and @qi/core
+
+5. Next steps: Complete rewrite using:
+   - Direct KafkaJS connection to Redpanda brokers
+   - MD smart constructors for data validation
+   - Proper @qi/base Result<T> composition
+   - @qi/core Logger and Cache integration
+   - Real message consumption/production instead of mock data
