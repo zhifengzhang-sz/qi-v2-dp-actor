@@ -1,6 +1,6 @@
 {
   "name": "@qi/dp-actor",
-  "version": "ts-0.6.0",
+  "version": "ts-0.7.0-dev",
   "description": "Data Processing Actors - Market data DSL and actor system",
   "type": "module",
   "main": "dist/index.js",
@@ -59,7 +59,7 @@
     }
   },
   "bin": {
-    "qi-mcp-server": "./dist/bin/mcp-server.js"
+    "qi-mcp-server": "./dist/bin/mcp-server-simple.js"
   },
   "scripts": {
     "dev": "bun run lib/src/index.ts",
@@ -78,8 +78,8 @@
     "typecheck": "tsc --noEmit",
     "docs": "typedoc lib/src/index.ts --out docs/api",
     "clean": "rimraf dist docs/api",
-    "start:mcp": "bun run dist/bin/mcp-server.js",
-    "dev:mcp": "bun run lib/src/bin/mcp-server.ts",
+    "start:mcp": "bun run dist/bin/mcp-server-simple.js",
+    "dev:mcp": "bun run lib/src/bin/mcp-server-simple.ts",
     "check": "bun run typecheck && bun run format && bun run test",
     "prepublishOnly": "bun run build && bun run test && bun run format",
     "deps:check": "npm list --depth=0",

@@ -41,9 +41,9 @@ This document defines the systematic versioning strategy for the TypeScript impl
 - **Status**: Partial implementation (Redpanda/Kafka complete, others pending)
 
 ### `ts-0.7.x` - MCP Concrete Implementations  
-- **Purpose**: Model Context Protocol specific implementations
-- **Scope**: MCP server integrations, Claude Code tooling
-- **Status**: Planned
+- **Purpose**: Model Context Protocol specific implementations with AI-first architecture
+- **Scope**: MCP server integrations, Qdrant vector database, Claude Code tooling, WebSocket streaming
+- **Status**: Development in progress (ts-0.7.0-dev)
 
 ## Version History
 
@@ -68,6 +68,17 @@ This document defines the systematic versioning strategy for the TypeScript impl
 - *Features*: Streaming integration, proper @qi/base patterns, robust error handling
 - *Remaining*: File-based, HTTP-based, WebSocket-based implementations
 
+### MCP Concrete Layer (ts-0.7.x)
+- `ts-0.7.0-dev` - Development version for MCP implementations with AI-first architecture
+- *Purpose*: Model Context Protocol implementations, Qdrant vector database integration
+- *Scope*: 
+  - Fix existing MCP actor issues (24 test failures, 12 errors)
+  - Add Qdrant vector database for semantic search and RAG
+  - Implement concrete MCP readers (TwelveData, CoinGecko, AlphaVantage, CCXT)
+  - WebSocket streaming support with real-time data
+  - AI query processing capabilities
+- *Status*: Development in progress
+
 ### Overall Project Status
 - **Total Tests**: 655/655 passing (599 core + 56 Redpanda actors)
 - **Test Files**: 22 passed
@@ -82,8 +93,8 @@ This document defines the systematic versioning strategy for the TypeScript impl
 | MD | ✅ Complete | ✅ All passing | 100% | ✅ ts-0.3.0 |
 | Utils/MD | ✅ Complete | ✅ All passing | 100% | ✅ ts-0.4.0 |
 | Abstract Actors | ✅ Complete | ✅ All passing | 100% | ✅ ts-0.5.2 |
-| Generic Concrete | 🔄 Partial | ✅ Redpanda tests passing | 25% | 🔄 ts-0.6.0 (next) |
-| MCP Concrete | 🔄 Planned | 🔄 Planned | N/A | 🔄 ts-0.7.0 |
+| Generic Concrete | 🔄 Partial | ✅ Redpanda tests passing | 25% | ✅ ts-0.6.0 |
+| MCP Concrete | 🔄 Development | 🔄 Fixing failures | N/A | 🔄 ts-0.7.0-dev |
 
 ## Quality Gates
 
@@ -110,7 +121,9 @@ Each major version must meet:
 - [x] **ts-0.5.2** - Abstract Actor workflow layer ✅
 
 ### Next Version Assignments
-- [x] **Tag ts-0.6.0 for Redpanda/Kafka implementations** ✅ (ready to tag)
+- [x] **Tag ts-0.6.0 for Redpanda/Kafka implementations** ✅ (tagged)
+- [x] **Start ts-0.7.0-dev for MCP implementations** ✅ (in progress)
+- [ ] **Complete ts-0.7.0 with MCP actors and Qdrant integration**
 - [ ] Continue ts-0.6.x for File/HTTP/WebSocket implementations
 
 This systematic versioning ensures clean separation of concerns and enables independent evolution of each architectural layer.
