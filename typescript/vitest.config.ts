@@ -18,7 +18,7 @@ export default defineConfig({
     deps: {
       optimizer: {
         ssr: {
-          include: ["@qi/base", "@qi/core", "@qi"],
+          include: ["@qi/base", "@qi/core"],
         },
       },
     },
@@ -54,8 +54,8 @@ export default defineConfig({
     preserveSymlinks: true,
     alias: {
       // Workspace dependency aliases
-      "@qi/base": new URL("../../qi-v2-qicore/typescript/dist/base.js", import.meta.url).pathname,
-      "@qi/core": new URL("../../qi-v2-qicore/typescript/dist/core.js", import.meta.url).pathname,
+      "@qi/base": new URL("../../qi-v2-qicore/typescript/lib/base/dist/index.js", import.meta.url).pathname,
+      "@qi/core": new URL("../../qi-v2-qicore/typescript/lib/core/dist/index.js", import.meta.url).pathname,
       // Local project aliases
       "@qi/dp": new URL("./lib/src", import.meta.url).pathname,
       "@qi/dp/dsl": new URL("./lib/src/dsl", import.meta.url).pathname,

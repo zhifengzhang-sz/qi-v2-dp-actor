@@ -1,14 +1,30 @@
 import type { QiError, Result } from "@qi/base";
 import { Err, Ok, create, flatMap } from "@qi/base";
 import type * as DSL from "../../dsl";
-import { MCPBaseActor } from "./MCPBaseActor";
+import { MCPBaseActor, type MCPConnectionConfig } from "./MCPBaseActor";
 
 /**
  * MCP Market Data Reader - implements DSL.MarketDataReader using MCP client
  *
- * Hides MCP protocol details and provides clean DSL interface
+ * Hides MCP protocol details and provides clean DSL interface.
+ * Supports both stdio and WebSocket transports for maximum flexibility.
  */
 export class MCPMarketDataReader extends MCPBaseActor implements DSL.MarketDataReader {
+  constructor(context: DSL.DataContext, config: MCPConnectionConfig) {
+    super(context, config);
+  }
+
+  // Legacy constructor support  
+  static override createWithCommand(context: DSL.DataContext, serverCommand: string[]): MCPMarketDataReader {
+    const config: MCPConnectionConfig = {
+      type: "stdio",
+      stdio: {
+        command: serverCommand[0] || "",
+        args: serverCommand.slice(1)
+      }
+    };
+    return new MCPMarketDataReader(context, config);
+  }
   async getCurrentPrice(
     context: DSL.DataContext
   ): Promise<Result<DSL.MarketData<DSL.Price>, QiError>> {

@@ -83,10 +83,6 @@
     "check": "bun run typecheck && bun run format && bun run test",
     "prepublishOnly": "bun run build && bun run test && bun run format",
     "deps:check": "npm list --depth=0",
-    "deps:update": "npm update @qi",
-    "deps:link": "npm link ../../../qi-v2-qicore/typescript",
-    "deps:git": "npm install @qi@github:zhifengzhang-sz/qi-v2-qicore#v4.0.0",
-    "deps:local": "npm install @qi@workspace:../../../qi-v2-qicore/typescript",
     "verify:dsl:impl": "echo 'Use Claude Code CLI: /verify-dsl-impl'",
     "verify:dsl:doc": "echo 'Use Claude Code CLI: /verify-dsl-doc'"
   },
@@ -118,8 +114,9 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0",
-    "@qi": "workspace:../../qi-v2-qicore/typescript",
+    "@modelcontextprotocol/sdk": "^1.17.4",
+    "@qi/base": "workspace:../../qi-v2-qicore/typescript/lib/base",
+    "@qi/core": "workspace:../../qi-v2-qicore/typescript/lib/core",
     "@vitest/coverage-v8": "1.6.1",
     "ajv": "^8.12.0",
     "ajv-formats": "^2.1.1",
