@@ -5,7 +5,7 @@
  */
 
 import type { Result } from "@qi/base";
-import { Err, Ok, create, flatMap } from "@qi/base";
+import { create, Err, flatMap, Ok } from "@qi/base";
 import type * as DSL from "@qi/dp/dsl";
 import { isOptionalNonEmptyString, isPositiveDecimal, isValidTimestamp } from "./validation.js";
 
@@ -18,7 +18,7 @@ export class Price implements DSL.Price {
     public readonly price: DSL.decimal,
     public readonly size: DSL.decimal,
     tradeId?: string,
-    aggressor?: DSL.Side
+    aggressor?: DSL.Side,
   ) {
     if (tradeId !== undefined) {
       this.tradeId = tradeId;
@@ -42,7 +42,7 @@ export class Price implements DSL.Price {
     price: DSL.decimal,
     size: DSL.decimal,
     tradeId?: string,
-    aggressor?: DSL.Side
+    aggressor?: DSL.Side,
   ): Result<Price> {
     // Validate optional aggressor first (simple check)
     if (aggressor !== undefined && aggressor !== "BUY" && aggressor !== "SELL") {
@@ -50,7 +50,7 @@ export class Price implements DSL.Price {
         create("INVALID_AGGRESSOR", "Aggressor must be BUY or SELL", "VALIDATION", {
           value: aggressor,
           field: "aggressor",
-        })
+        }),
       );
     }
 
@@ -64,13 +64,13 @@ export class Price implements DSL.Price {
                 flatMap(
                   (validTradeId) =>
                     Ok(new Price(validTimestamp, validPrice, validSize, validTradeId, aggressor)),
-                  isOptionalNonEmptyString(tradeId, "tradeId")
+                  isOptionalNonEmptyString(tradeId, "tradeId"),
                 ),
-              isPositiveDecimal(size, "size")
+              isPositiveDecimal(size, "size"),
             ),
-          isPositiveDecimal(price, "price")
+          isPositiveDecimal(price, "price"),
         ),
-      isValidTimestamp(timestamp)
+      isValidTimestamp(timestamp),
     );
   }
 

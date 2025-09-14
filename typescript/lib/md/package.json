@@ -13,13 +13,21 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "bun tsup",
     "clean": "bun rimraf dist",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "prepublishOnly": "bun run clean && bun run build"
+    "check": "bun run typecheck && biome check src tests && bun run test",
+    "check:fix": "biome check . --write",
+    "test": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
+    "dev": "vitest --watch",
+    "prepublishOnly": "bun run check && bun run test && bun run build"
   },
   "keywords": [
     "qicore",
@@ -40,10 +48,13 @@
     "access": "public"
   },
   "dependencies": {
-    "@qi/base": "file:../../../../qi-v2-qicore/typescript/lib/base",
-    "@qi/dp/dsl": "file:../dsl"
+    "@qi/base": "workspace:../../../../qi-v2-qicore/typescript/lib/base",
+    "@qi/dp/dsl": "workspace:../dsl"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.2.3",
+    "@vitest/coverage-v8": "^1.6.1",
+    "@vitest/ui": "^1.6.1",
     "rimraf": "^5.0.10",
     "tsup": "^8.5.0",
     "typescript": "^5.8.3",

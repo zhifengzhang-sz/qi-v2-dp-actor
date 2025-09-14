@@ -5,17 +5,14 @@
  */
 
 import type { Result } from "@qi/base";
-import { Err, Ok, create, flatMap } from "@qi/base";
+import { create, Err, flatMap, Ok } from "@qi/base";
 import type * as DSL from "@qi/dp/dsl";
-import { Exchange } from "./exchange.js";
-import { Instrument } from "./instrument.js";
-import { Market } from "./market.js";
 
 export class DataContext implements DSL.DataContext {
   private constructor(
     public readonly market: DSL.Market,
     public readonly exchange: DSL.Exchange,
-    public readonly instrument: DSL.Instrument
+    public readonly instrument: DSL.Instrument,
   ) {}
 
   /**
@@ -28,7 +25,7 @@ export class DataContext implements DSL.DataContext {
   static create(
     market: DSL.Market,
     exchange: DSL.Exchange,
-    instrument: DSL.Instrument
+    instrument: DSL.Instrument,
   ): Result<DataContext> {
     // Validate market
     if (market === null || typeof market !== "object") {
@@ -36,7 +33,7 @@ export class DataContext implements DSL.DataContext {
         create("INVALID_MARKET", "Market must be a valid Market object", "VALIDATION", {
           value: market,
           type: typeof market,
-        })
+        }),
       );
     }
 
@@ -46,7 +43,7 @@ export class DataContext implements DSL.DataContext {
         create("INVALID_EXCHANGE", "Exchange must be a valid Exchange object", "VALIDATION", {
           value: exchange,
           type: typeof exchange,
-        })
+        }),
       );
     }
 
@@ -56,7 +53,7 @@ export class DataContext implements DSL.DataContext {
         create("INVALID_INSTRUMENT", "Instrument must be a valid Instrument object", "VALIDATION", {
           value: instrument,
           type: typeof instrument,
-        })
+        }),
       );
     }
 
@@ -65,9 +62,9 @@ export class DataContext implements DSL.DataContext {
       () =>
         flatMap(
           () => Ok(new DataContext(market, exchange, instrument)),
-          DataContext.validateExchangeMarketCompatibility(exchange, market)
+          DataContext.validateExchangeMarketCompatibility(exchange, market),
         ),
-      DataContext.validateMarketInstrumentCompatibility(market, instrument)
+      DataContext.validateMarketInstrumentCompatibility(market, instrument),
     );
   }
 
@@ -88,7 +85,7 @@ export class DataContext implements DSL.DataContext {
    */
   private static validateMarketInstrumentCompatibility(
     market: DSL.Market,
-    instrument: DSL.Instrument
+    instrument: DSL.Instrument,
   ): Result<void> {
     // Crypto instruments should typically be in CRYPTO markets
     if (instrument.assetClass === "CRYPTO" && market.type !== "CRYPTO") {
@@ -101,8 +98,8 @@ export class DataContext implements DSL.DataContext {
             marketType: market.type,
             instrumentAssetClass: instrument.assetClass,
             suggestion: "Use CRYPTO market type for crypto instruments",
-          }
-        )
+          },
+        ),
       );
     }
 
@@ -117,8 +114,8 @@ export class DataContext implements DSL.DataContext {
             marketType: market.type,
             instrumentAssetClass: instrument.assetClass,
             suggestion: "Use EQUITY market type for stock instruments",
-          }
-        )
+          },
+        ),
       );
     }
 
@@ -133,8 +130,8 @@ export class DataContext implements DSL.DataContext {
             marketType: market.type,
             instrumentAssetClass: instrument.assetClass,
             suggestion: "Use FOREX market type for currency instruments",
-          }
-        )
+          },
+        ),
       );
     }
 
@@ -149,7 +146,7 @@ export class DataContext implements DSL.DataContext {
    */
   private static validateExchangeMarketCompatibility(
     exchange: DSL.Exchange,
-    market: DSL.Market
+    market: DSL.Market,
   ): Result<void> {
     // This is a soft validation - some cross-region trading is valid
     // For now, we'll just return success but could add specific rules later

@@ -5,7 +5,7 @@
  */
 
 import type { Result } from "@qi/base";
-import { Err, Ok, create, flatMap } from "@qi/base";
+import { create, Err, flatMap, Ok } from "@qi/base";
 import type * as DSL from "@qi/dp/dsl";
 import { isNonNegativeDecimal, isPositiveDecimal, isValidTimestamp } from "./validation.js";
 
@@ -25,7 +25,7 @@ export class OHLCV implements DSL.OHLCV {
     baseVolume?: DSL.decimal,
     quoteVolume?: DSL.decimal,
     tradeCount?: number,
-    weightedAveragePrice?: DSL.decimal
+    weightedAveragePrice?: DSL.decimal,
   ) {
     if (baseVolume !== undefined) {
       this.baseVolume = baseVolume;
@@ -65,7 +65,7 @@ export class OHLCV implements DSL.OHLCV {
     baseVolume?: DSL.decimal,
     quoteVolume?: DSL.decimal,
     tradeCount?: number,
-    weightedAveragePrice?: DSL.decimal
+    weightedAveragePrice?: DSL.decimal,
   ): Result<OHLCV> {
     // Validate all required fields using flatMap composition
     return flatMap(
@@ -99,8 +99,8 @@ export class OHLCV implements DSL.OHLCV {
                                     high: validHigh,
                                     close: validClose,
                                     maxOpenClose,
-                                  }
-                                )
+                                  },
+                                ),
                               );
                             }
 
@@ -117,8 +117,8 @@ export class OHLCV implements DSL.OHLCV {
                                     low: validLow,
                                     close: validClose,
                                     minOpenClose,
-                                  }
-                                )
+                                  },
+                                ),
                               );
                             }
 
@@ -132,8 +132,8 @@ export class OHLCV implements DSL.OHLCV {
                                   {
                                     high: validHigh,
                                     low: validLow,
-                                  }
-                                )
+                                  },
+                                ),
                               );
                             }
 
@@ -154,8 +154,8 @@ export class OHLCV implements DSL.OHLCV {
                                             "INVALID_TRADE_COUNT",
                                             "Trade count must be a non-negative integer",
                                             "VALIDATION",
-                                            { value: tradeCount, type: typeof tradeCount }
-                                          )
+                                            { value: tradeCount, type: typeof tradeCount },
+                                          ),
                                         );
                                       }
                                     }
@@ -175,8 +175,8 @@ export class OHLCV implements DSL.OHLCV {
                                                   weightedAveragePrice: validatedWAP,
                                                   low: validLow,
                                                   high: validHigh,
-                                                }
-                                              )
+                                                },
+                                              ),
                                             );
                                           }
                                         }
@@ -192,38 +192,38 @@ export class OHLCV implements DSL.OHLCV {
                                             validatedBaseVolume,
                                             validatedQuoteVolume,
                                             tradeCount,
-                                            validatedWAP
-                                          )
+                                            validatedWAP,
+                                          ),
                                         );
                                       },
                                       weightedAveragePrice !== undefined
                                         ? isPositiveDecimal(
                                             weightedAveragePrice,
-                                            "weightedAveragePrice"
+                                            "weightedAveragePrice",
                                           )
-                                        : Ok(undefined)
+                                        : Ok(undefined),
                                     );
                                   },
                                   quoteVolume !== undefined
                                     ? isNonNegativeDecimal(quoteVolume, "quoteVolume")
-                                    : Ok(undefined)
+                                    : Ok(undefined),
                                 ),
                               baseVolume !== undefined
                                 ? isNonNegativeDecimal(baseVolume, "baseVolume")
-                                : Ok(undefined)
+                                : Ok(undefined),
                             );
                           },
-                          isNonNegativeDecimal(volume, "volume")
+                          isNonNegativeDecimal(volume, "volume"),
                         ),
-                      isPositiveDecimal(close, "close")
+                      isPositiveDecimal(close, "close"),
                     ),
-                  isPositiveDecimal(low, "low")
+                  isPositiveDecimal(low, "low"),
                 ),
-              isPositiveDecimal(high, "high")
+              isPositiveDecimal(high, "high"),
             ),
-          isPositiveDecimal(open, "open")
+          isPositiveDecimal(open, "open"),
         ),
-      isValidTimestamp(timestamp)
+      isValidTimestamp(timestamp),
     );
   }
 
@@ -243,7 +243,7 @@ export class OHLCV implements DSL.OHLCV {
       obj.baseVolume,
       obj.quoteVolume,
       obj.tradeCount,
-      obj.weightedAveragePrice
+      obj.weightedAveragePrice,
     );
   }
 

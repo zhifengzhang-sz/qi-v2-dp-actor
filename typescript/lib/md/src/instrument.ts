@@ -5,7 +5,7 @@
  */
 
 import type { Result } from "@qi/base";
-import { Err, Ok, create } from "@qi/base";
+import { create, Err, Ok } from "@qi/base";
 import type * as DSL from "@qi/dp/dsl";
 import { isNonEmptyString } from "./validation.js";
 
@@ -15,7 +15,7 @@ export class Instrument implements DSL.Instrument {
     public readonly isin: string | null,
     public readonly name: string,
     public readonly assetClass: DSL.AssetClass,
-    public readonly currency: string
+    public readonly currency: string,
   ) {}
 
   /**
@@ -32,7 +32,7 @@ export class Instrument implements DSL.Instrument {
     isin: string | null,
     name: string,
     assetClass: DSL.AssetClass,
-    currency: string
+    currency: string,
   ): Result<Instrument> {
     // Validate symbol
     const symbolResult = isNonEmptyString(symbol, "symbol");
@@ -48,7 +48,7 @@ export class Instrument implements DSL.Instrument {
           create("INVALID_ISIN_TYPE", "ISIN must be a string or null", "VALIDATION", {
             value: isin,
             type: typeof isin,
-          })
+          }),
         );
       }
 
@@ -58,8 +58,8 @@ export class Instrument implements DSL.Instrument {
             "INVALID_ISIN_EMPTY",
             "ISIN cannot be empty (use null if not available)",
             "VALIDATION",
-            { value: isin }
-          )
+            { value: isin },
+          ),
         );
       }
 
@@ -70,8 +70,8 @@ export class Instrument implements DSL.Instrument {
             "INVALID_ISIN_FORMAT",
             "ISIN must be 12 characters: 2-letter country code + 9 alphanumeric + 1 check digit (ISO 6166)",
             "VALIDATION",
-            { value: isin, expectedFormat: "CCNNNNNNNND (C=country, N=alphanumeric, D=digit)" }
-          )
+            { value: isin, expectedFormat: "CCNNNNNNNND (C=country, N=alphanumeric, D=digit)" },
+          ),
         );
       }
 
@@ -100,8 +100,8 @@ export class Instrument implements DSL.Instrument {
           "INVALID_ASSET_CLASS",
           "Asset class must be one of: STOCK, CRYPTO, CURRENCY, COMMODITY, BOND, INDEX",
           "VALIDATION",
-          { value: assetClass, validValues: validAssetClasses }
-        )
+          { value: assetClass, validValues: validAssetClasses },
+        ),
       );
     }
 
@@ -118,8 +118,8 @@ export class Instrument implements DSL.Instrument {
           "INVALID_CURRENCY_FORMAT",
           "Currency must be a 3-letter ISO 4217 currency code (e.g., USD, EUR, JPY)",
           "VALIDATION",
-          { value: currency, expectedFormat: "XXX (three uppercase letters)" }
-        )
+          { value: currency, expectedFormat: "XXX (three uppercase letters)" },
+        ),
       );
     }
 
@@ -129,8 +129,8 @@ export class Instrument implements DSL.Instrument {
         validatedIsin,
         nameResult.value,
         assetClass,
-        currencyResult.value
-      )
+        currencyResult.value,
+      ),
     );
   }
 
@@ -162,8 +162,8 @@ export class Instrument implements DSL.Instrument {
           "ISIN_NOT_AVAILABLE",
           `Instrument ${this.symbol} does not have an ISIN`,
           "VALIDATION",
-          { symbol: this.symbol, name: this.name, assetClass: this.assetClass }
-        )
+          { symbol: this.symbol, name: this.name, assetClass: this.assetClass },
+        ),
       );
     }
     return Ok(this.isin);

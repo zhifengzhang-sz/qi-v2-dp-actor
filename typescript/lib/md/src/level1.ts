@@ -5,7 +5,7 @@
  */
 
 import type { Result } from "@qi/base";
-import { Err, Ok, create, flatMap } from "@qi/base";
+import { create, Err, flatMap, Ok } from "@qi/base";
 import type * as DSL from "@qi/dp/dsl";
 import { isOptionalNonEmptyString, isPositiveDecimal, isValidTimestamp } from "./validation.js";
 
@@ -22,7 +22,7 @@ export class Level1 implements DSL.Level1 {
     public readonly askSize: DSL.decimal,
     quoteId?: string,
     bidTime?: string,
-    askTime?: string
+    askTime?: string,
   ) {
     if (quoteId !== undefined) {
       this.quoteId = quoteId;
@@ -55,12 +55,12 @@ export class Level1 implements DSL.Level1 {
     askSize: DSL.decimal,
     quoteId?: string,
     bidTime?: string,
-    askTime?: string
+    askTime?: string,
   ): Result<Level1> {
     // Helper function for optional timestamp validation
     const validateOptionalTimestamp = (
       value: string | undefined,
-      fieldName: string
+      fieldName: string,
     ): Result<string | undefined> => {
       if (value === undefined) return Ok(undefined);
 
@@ -74,8 +74,8 @@ export class Level1 implements DSL.Level1 {
             {
               value,
               originalError: result.error,
-            }
-          )
+            },
+          ),
         );
       }
       return Ok(result.value);
@@ -112,8 +112,8 @@ export class Level1 implements DSL.Level1 {
                                             bidPrice: validBidPrice,
                                             askPrice: validAskPrice,
                                             spread: askPriceNum - bidPriceNum,
-                                          }
-                                        )
+                                          },
+                                        ),
                                       );
                                     }
 
@@ -126,25 +126,25 @@ export class Level1 implements DSL.Level1 {
                                         validAskSize,
                                         validQuoteId,
                                         validBidTime,
-                                        validAskTime
-                                      )
+                                        validAskTime,
+                                      ),
                                     );
                                   },
-                                  validateOptionalTimestamp(askTime, "ask time")
+                                  validateOptionalTimestamp(askTime, "ask time"),
                                 ),
-                              validateOptionalTimestamp(bidTime, "bid time")
+                              validateOptionalTimestamp(bidTime, "bid time"),
                             ),
-                          isOptionalNonEmptyString(quoteId, "quoteId")
+                          isOptionalNonEmptyString(quoteId, "quoteId"),
                         ),
-                      isPositiveDecimal(askSize, "askSize")
+                      isPositiveDecimal(askSize, "askSize"),
                     ),
-                  isPositiveDecimal(askPrice, "askPrice")
+                  isPositiveDecimal(askPrice, "askPrice"),
                 ),
-              isPositiveDecimal(bidSize, "bidSize")
+              isPositiveDecimal(bidSize, "bidSize"),
             ),
-          isPositiveDecimal(bidPrice, "bidPrice")
+          isPositiveDecimal(bidPrice, "bidPrice"),
         ),
-      isValidTimestamp(timestamp)
+      isValidTimestamp(timestamp),
     );
   }
 
@@ -162,7 +162,7 @@ export class Level1 implements DSL.Level1 {
       obj.askSize,
       obj.quoteId,
       obj.bidTime,
-      obj.askTime
+      obj.askTime,
     );
   }
 

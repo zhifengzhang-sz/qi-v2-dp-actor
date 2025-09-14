@@ -6,52 +6,50 @@
  * the smart constructor pattern with Result<T> functional error handling.
  */
 
-// Re-export all smart constructor classes
-export { Price } from "./price.js";
-export { Level1 } from "./level1.js";
-export { OHLCV } from "./ohlcv.js";
-export { MarketDepth } from "./market-depth.js";
-export { Market } from "./market.js";
-export { Exchange } from "./exchange.js";
-export { Instrument } from "./instrument.js";
-export { DataContext } from "./data-context.js";
-export { MarketData } from "./market-data.js";
-
-// Re-export validation utilities for advanced usage
-export {
-  isValidTimestamp,
-  isPositiveFiniteNumber,
-  isNonNegativeFiniteNumber,
-  isValidDecimal,
-  isPositiveDecimal,
-  isNonNegativeDecimal,
-  isNonEmptyString,
-  isOptionalNonEmptyString,
-} from "./validation.js";
-
 // Type re-exports from DSL for convenience
 export type {
-  // Core market data types (from DSL)
-  Price as PriceInterface,
-  Level1 as Level1Interface,
-  OHLCV as OHLCVInterface,
-  MarketDepth as MarketDepthInterface,
+  AssetClass,
+  ContextQuery,
   CoreMarketData,
-  MarketData as MarketDataInterface,
+  DataContext as DataContextInterface,
+  DateRange,
+  DepthLevel,
   decimal,
-  // Context types (from DSL)
-  Market as MarketInterface,
   Exchange as ExchangeInterface,
   Instrument as InstrumentInterface,
-  DataContext as DataContextInterface,
-  DepthLevel,
+  Level1 as Level1Interface,
+  Levels,
+  // Context types (from DSL)
+  Market as MarketInterface,
+  MarketData as MarketDataInterface,
+  MarketDepth as MarketDepthInterface,
   // Supporting types (from DSL)
   MarketType,
+  OHLCV as OHLCVInterface,
+  // Core market data types (from DSL)
+  Price as PriceInterface,
   Segment,
   Side,
-  AssetClass,
-  DateRange,
   Timeframe,
-  Levels,
-  ContextQuery,
 } from "@qi/dp/dsl";
+export { DataContext } from "./data-context.js";
+export { Exchange } from "./exchange.js";
+export { Instrument } from "./instrument.js";
+export { Level1 } from "./level1.js";
+export { Market } from "./market.js";
+export { MarketData } from "./market-data.js";
+export { MarketDepth } from "./market-depth.js";
+export { OHLCV } from "./ohlcv.js";
+// Re-export all smart constructor classes
+export { Price } from "./price.js";
+// Re-export validation utilities for advanced usage
+export {
+  isNonEmptyString,
+  isNonNegativeDecimal,
+  isNonNegativeFiniteNumber,
+  isOptionalNonEmptyString,
+  isPositiveDecimal,
+  isPositiveFiniteNumber,
+  isValidDecimal,
+  isValidTimestamp,
+} from "./validation.js";

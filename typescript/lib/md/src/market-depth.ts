@@ -5,7 +5,7 @@
  */
 
 import type { Result } from "@qi/base";
-import { Err, Ok, create } from "@qi/base";
+import { create, Err, Ok } from "@qi/base";
 import type * as DSL from "@qi/dp/dsl";
 import { isNonNegativeDecimal, isPositiveDecimal, isValidTimestamp } from "./validation.js";
 
@@ -20,7 +20,7 @@ export class MarketDepth implements DSL.MarketDepth {
     public readonly asks: readonly DSL.DepthLevel[],
     sequenceNumber?: number,
     totalBidSize?: DSL.decimal,
-    totalAskSize?: DSL.decimal
+    totalAskSize?: DSL.decimal,
   ) {
     if (sequenceNumber !== undefined) {
       this.sequenceNumber = sequenceNumber;
@@ -49,7 +49,7 @@ export class MarketDepth implements DSL.MarketDepth {
     asks: readonly DSL.DepthLevel[],
     sequenceNumber?: number,
     totalBidSize?: DSL.decimal,
-    totalAskSize?: DSL.decimal
+    totalAskSize?: DSL.decimal,
   ): Result<MarketDepth> {
     // Validate timestamp
     const timestampResult = isValidTimestamp(timestamp);
@@ -63,7 +63,7 @@ export class MarketDepth implements DSL.MarketDepth {
         create("INVALID_BIDS_TYPE", "Bids must be an array", "VALIDATION", {
           value: bids,
           type: typeof bids,
-        })
+        }),
       );
     }
 
@@ -73,7 +73,7 @@ export class MarketDepth implements DSL.MarketDepth {
         create("INVALID_ASKS_TYPE", "Asks must be an array", "VALIDATION", {
           value: asks,
           type: typeof asks,
-        })
+        }),
       );
     }
 
@@ -84,8 +84,8 @@ export class MarketDepth implements DSL.MarketDepth {
           "EMPTY_DEPTH",
           "Market depth must have at least one bid or ask level",
           "VALIDATION",
-          { bidsCount: bids.length, asksCount: asks.length }
-        )
+          { bidsCount: bids.length, asksCount: asks.length },
+        ),
       );
     }
 
@@ -97,7 +97,7 @@ export class MarketDepth implements DSL.MarketDepth {
         return Err(
           create("UNDEFINED_BID_LEVEL", `Bid level at index ${i} is undefined`, "VALIDATION", {
             index: i,
-          })
+          }),
         );
       }
       const bidResult = MarketDepth.validateDepthLevel(bid, "bid", i);
@@ -115,7 +115,7 @@ export class MarketDepth implements DSL.MarketDepth {
         return Err(
           create("UNDEFINED_ASK_LEVEL", `Ask level at index ${i} is undefined`, "VALIDATION", {
             index: i,
-          })
+          }),
         );
       }
       const askResult = MarketDepth.validateDepthLevel(ask, "ask", i);
@@ -139,8 +139,8 @@ export class MarketDepth implements DSL.MarketDepth {
               level: i,
               previousPrice: validatedBids[i - 1]?.price,
               currentPrice: validatedBids[i]?.price,
-            }
-          )
+            },
+          ),
         );
       }
     }
@@ -159,8 +159,8 @@ export class MarketDepth implements DSL.MarketDepth {
               level: i,
               previousPrice: validatedAsks[i - 1]?.price,
               currentPrice: validatedAsks[i]?.price,
-            }
-          )
+            },
+          ),
         );
       }
     }
@@ -179,8 +179,8 @@ export class MarketDepth implements DSL.MarketDepth {
               bestBid: validatedBids[0]?.price,
               bestAsk: validatedAsks[0]?.price,
               spread: bestAsk - bestBid,
-            }
-          )
+            },
+          ),
         );
       }
     }
@@ -197,8 +197,8 @@ export class MarketDepth implements DSL.MarketDepth {
             "INVALID_SEQUENCE_NUMBER",
             "Sequence number must be a non-negative integer",
             "VALIDATION",
-            { value: sequenceNumber, type: typeof sequenceNumber }
-          )
+            { value: sequenceNumber, type: typeof sequenceNumber },
+          ),
         );
       }
     }
@@ -230,8 +230,8 @@ export class MarketDepth implements DSL.MarketDepth {
         validatedAsks,
         sequenceNumber,
         validatedTotalBidSize,
-        validatedTotalAskSize
-      )
+        validatedTotalAskSize,
+      ),
     );
   }
 
@@ -245,7 +245,7 @@ export class MarketDepth implements DSL.MarketDepth {
   private static validateDepthLevel(
     level: unknown,
     side: "bid" | "ask",
-    index: number
+    index: number,
   ): Result<DSL.DepthLevel> {
     if (level === null || typeof level !== "object") {
       return Err(
@@ -254,7 +254,7 @@ export class MarketDepth implements DSL.MarketDepth {
           index,
           value: level,
           type: typeof level,
-        })
+        }),
       );
     }
 
@@ -268,8 +268,8 @@ export class MarketDepth implements DSL.MarketDepth {
           "INVALID_DEPTH_LEVEL_PRICE_TYPE",
           `${side} level price must be a string`,
           "VALIDATION",
-          { side, index, value: price, type: typeof price }
-        )
+          { side, index, value: price, type: typeof price },
+        ),
       );
     }
 
@@ -285,8 +285,8 @@ export class MarketDepth implements DSL.MarketDepth {
           "INVALID_DEPTH_LEVEL_SIZE_TYPE",
           `${side} level size must be a string`,
           "VALIDATION",
-          { side, index, value: size, type: typeof size }
-        )
+          { side, index, value: size, type: typeof size },
+        ),
       );
     }
 
@@ -302,8 +302,8 @@ export class MarketDepth implements DSL.MarketDepth {
           "INVALID_DEPTH_LEVEL_NUMBER",
           `${side} level number must be a positive integer`,
           "VALIDATION",
-          { side, index, value: levelNum, type: typeof levelNum }
-        )
+          { side, index, value: levelNum, type: typeof levelNum },
+        ),
       );
     }
 
@@ -326,7 +326,7 @@ export class MarketDepth implements DSL.MarketDepth {
       obj.asks,
       obj.sequenceNumber,
       obj.totalBidSize,
-      obj.totalAskSize
+      obj.totalAskSize,
     );
   }
 

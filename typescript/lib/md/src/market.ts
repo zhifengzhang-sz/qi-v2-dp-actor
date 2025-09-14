@@ -5,7 +5,7 @@
  */
 
 import type { Result } from "@qi/base";
-import { Err, Ok, create, flatMap } from "@qi/base";
+import { create, Err, flatMap, Ok } from "@qi/base";
 import type * as DSL from "@qi/dp/dsl";
 import { isNonEmptyString } from "./validation.js";
 
@@ -13,7 +13,7 @@ export class Market implements DSL.Market {
   private constructor(
     public readonly type: DSL.MarketType,
     public readonly region: string,
-    public readonly segment: DSL.Segment
+    public readonly segment: DSL.Segment,
   ) {}
 
   /**
@@ -40,8 +40,8 @@ export class Market implements DSL.Market {
           "INVALID_MARKET_TYPE",
           "Market type must be one of: EQUITY, CRYPTO, FOREX, COMMODITY, BOND, DERIVATIVE",
           "VALIDATION",
-          { value: type, validValues: validMarketTypes }
-        )
+          { value: type, validValues: validMarketTypes },
+        ),
       );
     }
 
@@ -55,8 +55,8 @@ export class Market implements DSL.Market {
               "INVALID_REGION_FORMAT",
               "Region must be a 2-letter ISO 3166-1 alpha-2 country code (e.g., US, GB, JP)",
               "VALIDATION",
-              { value: validRegion, expectedFormat: "XX (two uppercase letters)" }
-            )
+              { value: validRegion, expectedFormat: "XX (two uppercase letters)" },
+            ),
           );
         }
 
@@ -69,14 +69,14 @@ export class Market implements DSL.Market {
               "INVALID_SEGMENT",
               "Market segment must be one of: CASH, FUTURES, OPTIONS",
               "VALIDATION",
-              { value: segment, validValues: validSegments }
-            )
+              { value: segment, validValues: validSegments },
+            ),
           );
         }
 
         return Ok(new Market(type, validRegion, segment));
       },
-      isNonEmptyString(region, "region")
+      isNonEmptyString(region, "region"),
     );
   }
 

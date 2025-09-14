@@ -5,18 +5,13 @@
  */
 
 import type { Result } from "@qi/base";
-import { Err, Ok, create } from "@qi/base";
+import { create, Err, Ok } from "@qi/base";
 import type * as DSL from "@qi/dp/dsl";
-import { DataContext } from "./data-context.js";
-import { Level1 } from "./level1.js";
-import { MarketDepth } from "./market-depth.js";
-import { OHLCV } from "./ohlcv.js";
-import { Price } from "./price.js";
 
 export class MarketData<T extends DSL.CoreMarketData> implements DSL.MarketData<T> {
   private constructor(
     public readonly context: DSL.DataContext,
-    public readonly coreData: T
+    public readonly coreData: T,
   ) {}
 
   /**
@@ -27,7 +22,7 @@ export class MarketData<T extends DSL.CoreMarketData> implements DSL.MarketData<
    */
   static create<T extends DSL.CoreMarketData>(
     context: DSL.DataContext,
-    coreData: T
+    coreData: T,
   ): Result<MarketData<T>> {
     // Validate context
     if (context === null || typeof context !== "object") {
@@ -35,7 +30,7 @@ export class MarketData<T extends DSL.CoreMarketData> implements DSL.MarketData<
         create("INVALID_CONTEXT", "Context must be a valid DataContext object", "VALIDATION", {
           value: context,
           type: typeof context,
-        })
+        }),
       );
     }
 
@@ -45,7 +40,7 @@ export class MarketData<T extends DSL.CoreMarketData> implements DSL.MarketData<
         create("INVALID_CORE_DATA", "Core data must be a valid market data object", "VALIDATION", {
           value: coreData,
           type: typeof coreData,
-        })
+        }),
       );
     }
 
