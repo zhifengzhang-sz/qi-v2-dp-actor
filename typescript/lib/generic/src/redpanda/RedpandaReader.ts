@@ -9,7 +9,7 @@ import { Err, Ok, type Result, create, match } from "@qi/base";
 import type { QiError } from "@qi/base";
 import { createLogger } from "@qi/core";
 import type { Logger } from "@qi/core";
-import { Reader } from "@qi/dp/actors";
+import { Reader } from "@qi/dp/actor";
 import type * as DSL from "@qi/dp/dsl";
 import * as MD from "@qi/dp/md";
 

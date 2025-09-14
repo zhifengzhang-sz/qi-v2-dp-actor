@@ -4,7 +4,7 @@
 
 import { Ok, type Result } from "@qi/base";
 import type { QiError } from "@qi/base";
-import { MCPReader } from "@qi/dp/actors";
+import { MCPMarketDataReader } from "@qi/dp/actor";
 import type * as DSL from "@qi/dp/dsl";
 
 export interface TwelveDataMCPReaderConfig {
@@ -13,7 +13,7 @@ export interface TwelveDataMCPReaderConfig {
   readonly symbols: string[];
 }
 
-export class TwelveDataMCPReader extends MCPReader {
+export class TwelveDataMCPReader extends MCPMarketDataReader {
   private config: TwelveDataMCPReaderConfig;
 
   constructor(context: DSL.DataContext, config: TwelveDataMCPReaderConfig) {

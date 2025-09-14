@@ -47,8 +47,6 @@ export type {
   StreamingBackend,
 } from "./interfaces/StreamingConnector.js";
 
-export { StreamingBackend } from "./interfaces/StreamingConnector.js";
-
 // =============================================================================
 // IMPLEMENTATION EXPORTS
 // =============================================================================
@@ -59,11 +57,12 @@ export { StreamingAdmin } from "./admin.js";
 export {
   StreamingClient,
   createStreamingClient,
-} from "./client-simple.js";
+  createStreamingClientFromEnv,
+} from "./client.js";
 
 // Connector factory and implementations
 export { ConnectorFactory } from "./factories/ConnectorFactory.js";
-export { PlatformaticKafkaConnector } from "./implementations/platformatic/PlatformaticKafkaConnector.js";
+export { PlatformaticKafkaConnector } from "./impl/platformatic/PlatformaticKafkaConnector.js";
 
 // =============================================================================
 // CONVENIENCE RE-EXPORTS
@@ -78,4 +77,4 @@ export { PlatformaticKafkaConnector } from "./implementations/platformatic/Platf
  * @param configPath Path to YAML configuration file
  * @returns Result<IStreamingClient, QiError>
  */
-export { createStreamingClient as createClient } from "./client-simple.js";
+export { createStreamingClient as createClient } from "./client.js";

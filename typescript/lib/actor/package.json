@@ -1,5 +1,5 @@
 {
-  "name": "@qi/dp/actors",
+  "name": "@qi/dp/actor",
   "version": "0.1.0",
   "description": "QiCore Data Processing Actors - Redpanda streaming event processors for market data workflows",
   "type": "module",

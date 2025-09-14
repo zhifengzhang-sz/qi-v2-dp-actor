@@ -4,10 +4,10 @@
 
 import { Ok, type Result } from "@qi/base";
 import type { QiError } from "@qi/base";
-import { MCPReader } from "@qi/dp/actors";
+import { MCPMarketDataReader as MCPMarketDataReaderBase } from "@qi/dp/actor";
 import type * as DSL from "@qi/dp/dsl";
 
-export class MCPMarketDataReader extends MCPReader {
+export class MCPMarketDataReader extends MCPMarketDataReaderBase {
   constructor(context: DSL.DataContext) {
     super(context);
   }

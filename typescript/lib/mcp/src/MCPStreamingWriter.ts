@@ -4,10 +4,10 @@
 
 import { Ok, type Result } from "@qi/base";
 import type { QiError } from "@qi/base";
-import { MCPWriter } from "@qi/dp/actors";
+import { MCPStreamingWriter as MCPStreamingWriterBase } from "@qi/dp/actor";
 import type * as DSL from "@qi/dp/dsl";
 
-export class MCPStreamingWriter extends MCPWriter {
+export class MCPStreamingWriter extends MCPStreamingWriterBase {
   constructor(context: DSL.DataContext) {
     super(context);
   }

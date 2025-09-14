@@ -17,7 +17,7 @@ import type {
 import { StreamingBackend } from "../interfaces/StreamingConnector.js";
 
 // Import different connector implementations
-import { PlatformaticKafkaConnector } from "../backends/PlatformaticKafkaConnector.js";
+import { PlatformaticKafkaConnector } from "../impl/platformatic/PlatformaticKafkaConnector.js";
 // Future implementations can be imported here:
 // import { ConfluentKafkaConnector } from '../backends/ConfluentKafkaConnector.js';
 // import { KafkaJSConnector } from '../backends/KafkaJSConnector.js';

@@ -8,7 +8,7 @@
 import { Err, Ok, type Result } from "@qi/base";
 import type { Logger } from "@qi/core";
 import { createLogger } from "@qi/core";
-import { Writer } from "@qi/dp/actors";
+import { Writer } from "@qi/dp/actor";
 import type * as DSL from "@qi/dp/dsl";
 
 import { ConnectorFactory } from "@qi/dp/base";

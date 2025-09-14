@@ -4,10 +4,10 @@
 
 import { Ok, type Result } from "@qi/base";
 import type { QiError } from "@qi/base";
-import { MCPReader } from "@qi/dp/actors";
+import { MCPStreamingReader as MCPStreamingReaderBase } from "@qi/dp/actor";
 import type * as DSL from "@qi/dp/dsl";
 
-export class MCPStreamingReader extends MCPReader {
+export class MCPStreamingReader extends MCPStreamingReaderBase {
   constructor(context: DSL.DataContext) {
     super(context);
   }
