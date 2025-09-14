@@ -16,14 +16,14 @@ export {
   Instrument,
   DataContext,
   MarketData,
-} from "../md/index.js";
+} from "@qi/dp/md";
 
 // MD Layer - Convenient factory aliases
-export { Price as createPrice } from "../md/price.js";
-export { Level1 as createLevel1 } from "../md/level1.js";
-export { OHLCV as createOHLCV } from "../md/ohlcv.js";
-export { MarketDepth as createMarketDepth } from "../md/market-depth.js";
-export { MarketData as createMarketData } from "../md/market-data.js";
+export { Price as createPrice } from "@qi/dp/md";
+export { Level1 as createLevel1 } from "@qi/dp/md";
+export { OHLCV as createOHLCV } from "@qi/dp/md";
+export { MarketDepth as createMarketDepth } from "@qi/dp/md";
+export { MarketData as createMarketData } from "@qi/dp/md";
 
 // Analytics utilities - Business intelligence for market data (MD layer)
 export type {

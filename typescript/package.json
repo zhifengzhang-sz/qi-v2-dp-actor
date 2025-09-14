@@ -36,6 +36,21 @@
       "types": "./lib/utils/dist/index.d.ts",
       "import": "./lib/utils/dist/index.js",
       "require": "./lib/utils/dist/index.cjs"
+    },
+    "./base": {
+      "types": "./lib/base/dist/index.d.ts",
+      "import": "./lib/base/dist/index.js",
+      "require": "./lib/base/dist/index.cjs"
+    },
+    "./generic": {
+      "types": "./lib/generic/dist/index.d.ts",
+      "import": "./lib/generic/dist/index.js",
+      "require": "./lib/generic/dist/index.cjs"
+    },
+    "./mcp": {
+      "types": "./lib/mcp/dist/index.d.ts",
+      "import": "./lib/mcp/dist/index.js",
+      "require": "./lib/mcp/dist/index.cjs"
     }
   },
   "bin": {
@@ -44,10 +59,13 @@
   "scripts": {
     "dev": "bun run lib/src/index.ts",
     "build": "bun run build:modules && tsup lib/src/index.ts --format cjs,esm --dts --clean",
-    "build:modules": "bun run build:dsl && bun run build:md && bun run build:actors && bun run build:connectors && bun run build:utils",
+    "build:modules": "bun run build:dsl && bun run build:md && bun run build:actors && bun run build:base && bun run build:generic && bun run build:mcp && bun run build:connectors && bun run build:utils",
     "build:dsl": "cd lib/dsl && bun run build",
     "build:md": "cd lib/md && bun run build", 
     "build:actors": "cd lib/actors && bun run build",
+    "build:base": "cd lib/base && bun run build",
+    "build:generic": "cd lib/generic && bun run build",
+    "build:mcp": "cd lib/mcp && bun run build",
     "build:connectors": "cd lib/connectors && bun run build",
     "build:utils": "cd lib/utils && bun run build",
     "build:watch": "tsup lib/src/index.ts --format cjs,esm --dts --watch",

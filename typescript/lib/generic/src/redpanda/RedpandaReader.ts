@@ -13,14 +13,14 @@ import { Reader } from "@qi/dp/actors";
 import type * as DSL from "@qi/dp/dsl";
 import * as MD from "@qi/dp/md";
 
-import { ConnectorFactory } from "./factories/ConnectorFactory.js";
+import { ConnectorFactory } from "@qi/dp/base";
 import type {
   IStreamingConnector,
-  IStreamingConsumer,
+  IConnectorConsumer as IStreamingConsumer,
   StreamingBackend,
   StreamingConsumerConfig,
-  StreamingMessage,
-} from "./interfaces/StreamingConnector.js";
+  ConnectorMessage as StreamingMessage,
+} from "@qi/dp/base";
 
 export interface RedpandaReaderConfig extends StreamingConsumerConfig {
   readonly topics: string[];

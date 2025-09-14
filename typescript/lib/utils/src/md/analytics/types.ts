@@ -16,7 +16,7 @@ import type {
   MarketDepth,
   OHLCV,
   Price,
-} from "../../../dsl/index.js";
+} from "@qi/dp/dsl";
 
 // Core Analytics Types
 

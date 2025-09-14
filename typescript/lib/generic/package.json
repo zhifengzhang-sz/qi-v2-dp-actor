@@ -1,7 +1,7 @@
 {
-  "name": "@qi/dp/utils",
+  "name": "@qi/dp/generic",
   "version": "0.1.0",
-  "description": "QiCore Data Processing Utils - Utility functions for market data processing",
+  "description": "QiCore Data Processing Generic Actors - Concrete implementations for traditional data sources",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -30,11 +30,11 @@
   "keywords": [
     "qicore",
     "data-processing",
-    "dsl",
-    "market-data",
-    "fix-protocol",
-    "vocabulary",
-    "types",
+    "actors",
+    "generic",
+    "redpanda",
+    "kafka",
+    "streaming",
     "typescript"
   ],
   "author": "Qi Platform",
@@ -48,9 +48,14 @@
   },
   "dependencies": {
     "@qi/base": "workspace:../../../../qi-v2-qicore/typescript/lib/base",
+    "@qi/core": "workspace:../../../../qi-v2-qicore/typescript/lib/core",
     "@qi/dp/dsl": "workspace:../dsl",
     "@qi/dp/md": "workspace:../md",
-    "decimal.js": "^10.4.3"
+    "@qi/dp/actors": "workspace:../actors",
+    "@qi/dp/base": "workspace:../base",
+    "@confluentinc/kafka-javascript": "^0.2.0",
+    "@platformatic/kafka": "^1.0.0",
+    "kafkajs": "^2.2.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.3",

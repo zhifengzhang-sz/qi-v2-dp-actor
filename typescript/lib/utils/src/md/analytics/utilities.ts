@@ -5,7 +5,7 @@
 
 import { Err, Ok } from "@qi/base";
 import type { QiError, Result } from "@qi/base";
-import type { DataContext } from "../../../dsl/index.js";
+import type { DataContext } from "@qi/dp/dsl";
 import { createMarketDataError } from "../errors.js";
 import type { AnalyticsMarketData, MarketAnalytics } from "./types.js";
 import { isValidMarketAnalytics } from "./validation.js";

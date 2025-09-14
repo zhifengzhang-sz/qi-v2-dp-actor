@@ -10,7 +10,7 @@ import type {
   MarketDataError,
   MarketDepthError,
   StreamingError,
-} from "../../dsl/errors.js";
+} from "@qi/dp/dsl";
 
 // === Error Factory Functions ===
 
