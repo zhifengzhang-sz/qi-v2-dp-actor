@@ -9,53 +9,33 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./dsl": {
-      "types": "./dist/dsl/index.d.ts",
-      "import": "./dist/dsl/index.mjs",
-      "require": "./dist/dsl/index.js"
+      "types": "./lib/dsl/dist/index.d.ts",
+      "import": "./lib/dsl/dist/index.js",
+      "require": "./lib/dsl/dist/index.cjs"
     },
     "./md": {
-      "types": "./dist/md/index.d.ts",
-      "import": "./dist/md/index.mjs",
-      "require": "./dist/md/index.js"
+      "types": "./lib/md/dist/index.d.ts",
+      "import": "./lib/md/dist/index.js",
+      "require": "./lib/md/dist/index.cjs"
+    },
+    "./actors": {
+      "types": "./lib/actors/dist/index.d.ts",
+      "import": "./lib/actors/dist/index.js",
+      "require": "./lib/actors/dist/index.cjs"
+    },
+    "./connectors": {
+      "types": "./lib/connectors/dist/index.d.ts",
+      "import": "./lib/connectors/dist/index.js",
+      "require": "./lib/connectors/dist/index.cjs"
     },
     "./utils": {
-      "types": "./dist/utils/index.d.ts",
-      "import": "./dist/utils/index.mjs",
-      "require": "./dist/utils/index.js"
-    },
-    "./market": {
-      "types": "./dist/market/index.d.ts",
-      "import": "./dist/market/index.mjs",
-      "require": "./dist/market/index.js"
-    },
-    "./mcp": {
-      "types": "./dist/mcp/index.d.ts",
-      "import": "./dist/mcp/index.mjs",
-      "require": "./dist/mcp/index.js"
-    },
-    "./testing": {
-      "types": "./dist/testing/index.d.ts",
-      "import": "./dist/testing/index.mjs",
-      "require": "./dist/testing/index.js"
-    },
-    "./analytics": {
-      "types": "./dist/analytics/index.d.ts",
-      "import": "./dist/analytics/index.mjs",
-      "require": "./dist/analytics/index.js"
-    },
-    "./functional": {
-      "types": "./dist/functional/index.d.ts",
-      "import": "./dist/functional/index.mjs",
-      "require": "./dist/functional/index.js"
-    },
-    "./performance": {
-      "types": "./dist/performance/index.d.ts",
-      "import": "./dist/performance/index.mjs",
-      "require": "./dist/performance/index.js"
+      "types": "./lib/utils/dist/index.d.ts",
+      "import": "./lib/utils/dist/index.js",
+      "require": "./lib/utils/dist/index.cjs"
     }
   },
   "bin": {
@@ -63,7 +43,13 @@
   },
   "scripts": {
     "dev": "bun run lib/src/index.ts",
-    "build": "tsup lib/src/index.ts --format cjs,esm --dts --clean",
+    "build": "bun run build:modules && tsup lib/src/index.ts --format cjs,esm --dts --clean",
+    "build:modules": "bun run build:dsl && bun run build:md && bun run build:actors && bun run build:connectors && bun run build:utils",
+    "build:dsl": "cd lib/dsl && bun run build",
+    "build:md": "cd lib/md && bun run build", 
+    "build:actors": "cd lib/actors && bun run build",
+    "build:connectors": "cd lib/connectors && bun run build",
+    "build:utils": "cd lib/utils && bun run build",
     "build:watch": "tsup lib/src/index.ts --format cjs,esm --dts --watch",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -74,10 +60,14 @@
     "bench": "vitest bench",
     "format": "biome check . --write",
     "format:check": "biome check .",
-    "lint": "biome lint .",
+    "lint": "biome lint . && eslint lib/dsl/src lib/actors/src --ext .ts,.tsx",
+    "lint:dsl": "eslint lib/dsl/src --ext .ts,.tsx",
+    "lint:actors": "eslint lib/actors/src --ext .ts,.tsx",
+    "lint:fix": "eslint lib/dsl/src lib/actors/src --ext .ts,.tsx --fix",
     "typecheck": "tsc --noEmit",
     "docs": "typedoc lib/src/index.ts --out docs/api",
-    "clean": "rimraf dist docs/api",
+    "clean": "rimraf dist docs/api && bun run clean:modules",
+    "clean:modules": "cd lib/dsl && bun run clean && cd ../md && bun run clean && cd ../actors && bun run clean && cd ../connectors && bun run clean && cd ../utils && bun run clean",
     "start:mcp": "bun run dist/bin/mcp-server-simple.js",
     "dev:mcp": "bun run lib/src/bin/mcp-server-simple.ts",
     "check": "bun run typecheck && bun run format && bun run test",
@@ -130,16 +120,21 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
+    "@qi/eslint-plugin": "workspace:../../qi-v2-qicore/typescript/eslint-rules",
+    "@typescript-eslint/eslint-plugin": "^8.43.0",
+    "@typescript-eslint/parser": "^8.43.0",
     "@types/decimal.js": "^7.4.3",
     "@types/express": "^4.17.21",
     "@types/node": "^20.10.0",
     "@types/ws": "^8.5.10",
     "bun-types": "^1.1.0",
+    "eslint": "^9.35.0",
     "fast-check": "^3.15.0",
     "rimraf": "^5.0.5",
     "tsup": "^8.0.0",
     "typedoc": "^0.25.0",
     "typescript": "^5.3.0",
+    "typescript-eslint": "^8.43.0",
     "vitest": "^1.0.0"
   },
   "peerDependencies": {

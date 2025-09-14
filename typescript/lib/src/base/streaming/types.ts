@@ -8,12 +8,7 @@
 import type { QiError, Result } from "@qi/base";
 import type { Config, ICache, Logger } from "@qi/core";
 import type {
-  Admin,
-  Consumer,
   ConsumerRunConfig,
-  Message,
-  Producer,
-  ProducerRecord,
 } from "kafkajs";
 
 // =============================================================================

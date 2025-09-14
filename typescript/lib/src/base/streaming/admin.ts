@@ -5,10 +5,10 @@
  * and @qi/core infrastructure integration for proper observability and error handling.
  */
 
-import { Err, Ok, type Result, create, flatMap, fromAsyncTryCatch, match } from "@qi/base";
+import { Err, Ok, type Result, create, fromAsyncTryCatch } from "@qi/base";
 import type { QiError } from "@qi/base";
 import type { Logger } from "@qi/core";
-import { type Admin, type ITopicConfig, ITopicMetadata, type Kafka } from "kafkajs";
+import { type Admin, type ITopicConfig, type Kafka } from "kafkajs";
 import type {
   IStreamingAdmin,
   StreamingConfig,

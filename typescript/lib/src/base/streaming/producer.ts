@@ -5,7 +5,7 @@
  * infrastructure integration for proper observability and error handling.
  */
 
-import { Err, Ok, type Result, create, flatMap, fromAsyncTryCatch, match } from "@qi/base";
+import { Err, Ok, type Result, create, fromAsyncTryCatch } from "@qi/base";
 import type { QiError } from "@qi/base";
 import type { Logger } from "@qi/core";
 import type { Kafka, Producer } from "kafkajs";
@@ -293,7 +293,7 @@ export class StreamingProducer implements IStreamingProducer {
         };
 
         opLogger.info("Message batch sent successfully", {
-          partitions: [...new Set(produceResults.map((r) => r.partition))],
+          partitions: Array.from(new Set(produceResults.map((r) => r.partition))),
         });
 
         return batchResult;

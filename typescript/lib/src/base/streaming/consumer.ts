@@ -5,7 +5,7 @@
  * infrastructure integration for proper observability and error handling.
  */
 
-import { Err, Ok, type Result, create, flatMap, fromAsyncTryCatch, match } from "@qi/base";
+import { Err, Ok, type Result, create, fromAsyncTryCatch } from "@qi/base";
 import type { QiError } from "@qi/base";
 import type { Logger } from "@qi/core";
 import type { Consumer, ConsumerRunConfig, EachMessagePayload, Kafka } from "kafkajs";
@@ -249,6 +249,9 @@ export class StreamingConsumer implements IStreamingConsumer {
               hasHeaders: !!payload.message.headers,
             });
 
+            // Process consumed message - convert to our ConsumedMessage format
+            // TODO: Add actual message processing logic here
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const _consumedMessage: ConsumedMessage = {
               topic: payload.topic,
               partition: payload.partition,

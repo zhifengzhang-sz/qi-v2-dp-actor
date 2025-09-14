@@ -42,10 +42,26 @@ export type {
 export { StreamingProducer } from "./producer.js";
 export { StreamingConsumer } from "./consumer.js";
 export { StreamingAdmin } from "./admin.js";
+
+// Default client (KafkaJS wrapper)
 export {
   StreamingClient,
   createStreamingClient,
-} from "./client-simple.js";
+  createStreamingClientWithConfig,
+} from "./client.js";
+
+// Specific client implementations
+export {
+  KafkaJSStreamingClient,
+  createKafkaJSStreamingClient,
+  ConfluentStreamingClient,
+  createConfluentStreamingClient,
+  PlatformaticStreamingClient,
+  createPlatformaticStreamingClient,
+  createStreamingClientByType,
+  createStreamingClientFromEnv,
+  type StreamingClientType,
+} from "./clients/index.js";
 
 // =============================================================================
 // CONVENIENCE RE-EXPORTS
@@ -60,4 +76,4 @@ export {
  * @param configPath Path to YAML configuration file
  * @returns Result<IStreamingClient, QiError>
  */
-export { createStreamingClient as createClient } from "./client-simple.js";
+export { createStreamingClient as createClient } from "./client.js";
