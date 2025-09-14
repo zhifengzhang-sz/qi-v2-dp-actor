@@ -1,7 +1,7 @@
 import type { QiError, Result } from "@qi/base";
 import { Err, Ok, create, flatMap } from "@qi/base";
-import type * as DSL from "../../dsl";
-import { MCPBaseActor, type MCPConnectionConfig } from "./MCPBaseActor";
+import type * as DSL from "@qi/dp/dsl";
+import { MCPBaseActor, type MCPConnectionConfig } from "./MCPBaseActor.js";
 
 /**
  * MCP Market Data Reader - implements DSL.MarketDataReader using MCP client

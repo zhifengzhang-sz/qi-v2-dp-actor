@@ -3,9 +3,12 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import type { Result } from "@qi/base";
 import { Err, Ok } from "@qi/base";
-import type * as DSL from "../../dsl";
-import { BaseActor } from "../abstract/BaseActor";
-import { WebSocketMCPTransport, type WebSocketMCPTransportConfig } from "./WebSocketMCPTransport";
+import type * as DSL from "@qi/dp/dsl";
+import { BaseActor } from "./BaseActor.js";
+import {
+  WebSocketMCPTransport,
+  type WebSocketMCPTransportConfig,
+} from "./WebSocketMCPTransport.js";
 
 export interface MCPConnectionConfig {
   type: "stdio" | "websocket";

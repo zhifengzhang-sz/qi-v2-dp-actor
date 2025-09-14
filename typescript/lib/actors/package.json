@@ -1,0 +1,68 @@
+{
+  "name": "@qi/dp/actors",
+  "version": "0.1.0",
+  "description": "QiCore Data Processing Actors - Redpanda streaming event processors for market data workflows",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "bun tsup",
+    "clean": "bun rimraf dist",
+    "typecheck": "tsc --noEmit",
+    "check": "bun run typecheck && biome check src tests && bun run test",
+    "check:fix": "biome check . --write",
+    "test": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
+    "dev": "vitest --watch",
+    "prepublishOnly": "bun run check && bun run test && bun run build"
+  },
+  "keywords": [
+    "qicore",
+    "data-processing",
+    "actors",
+    "streaming",
+    "redpanda",
+    "kafka",
+    "event-driven",
+    "workflow",
+    "mcp",
+    "typescript"
+  ],
+  "author": "Qi Platform",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@qi/base": "workspace:*",
+    "@qi/core": "workspace:*",
+    "@qi/dp/dsl": "workspace:*",
+    "@modelcontextprotocol/sdk": "^0.5.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.2.3",
+    "@types/ws": "^8.5.12",
+    "@vitest/coverage-v8": "^1.6.1",
+    "@vitest/ui": "^1.6.1",
+    "rimraf": "^5.0.10",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3",
+    "vitest": "^1.6.1"
+  }
+}

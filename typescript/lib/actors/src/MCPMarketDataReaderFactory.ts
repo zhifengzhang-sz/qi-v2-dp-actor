@@ -8,7 +8,7 @@
  * - CCXT exchange integrations
  */
 
-import type * as DSL from "../../dsl/index.js";
+import type * as DSL from "@qi/dp/dsl";
 import type { MCPConnectionConfig } from "./MCPBaseActor.js";
 import { MCPMarketDataReader } from "./MCPMarketDataReader.js";
 import type { WebSocketMCPTransportConfig } from "./WebSocketMCPTransport.js";

@@ -2,7 +2,7 @@
 
 /**
  * Simple MCP Server for Qi DP Actor - Market Data Tools
- * 
+ *
  * A basic MCP server implementation that provides market data tools
  * using the traditional setRequestHandler approach to avoid schema complexity.
  */
@@ -53,10 +53,13 @@ class SimpleMCPMarketDataServer {
           inputSchema: {
             type: "object",
             properties: {
-              context: { type: "object", description: "Data context with market, exchange, instrument" }
+              context: {
+                type: "object",
+                description: "Data context with market, exchange, instrument",
+              },
             },
-            required: ["context"]
-          }
+            required: ["context"],
+          },
         },
         {
           name: "get_level1",
@@ -64,10 +67,10 @@ class SimpleMCPMarketDataServer {
           inputSchema: {
             type: "object",
             properties: {
-              context: { type: "object", description: "Data context" }
+              context: { type: "object", description: "Data context" },
             },
-            required: ["context"]
-          }
+            required: ["context"],
+          },
         },
         {
           name: "subscribe_price_stream",
@@ -75,12 +78,12 @@ class SimpleMCPMarketDataServer {
           inputSchema: {
             type: "object",
             properties: {
-              context: { type: "object", description: "Data context" }
+              context: { type: "object", description: "Data context" },
             },
-            required: ["context"]
-          }
-        }
-      ]
+            required: ["context"],
+          },
+        },
+      ],
     }));
 
     // Tools call handler
@@ -115,10 +118,10 @@ class SimpleMCPMarketDataServer {
             symbol: context.instrument.symbol,
             price: 42000 + Math.random() * 1000,
             timestamp: new Date().toISOString(),
-            source: "mock"
-          })
-        }
-      ]
+            source: "mock",
+          }),
+        },
+      ],
     };
   }
 
@@ -139,10 +142,10 @@ class SimpleMCPMarketDataServer {
             bidSize: Math.floor(Math.random() * 100),
             askSize: Math.floor(Math.random() * 100),
             timestamp: new Date().toISOString(),
-            source: "mock"
-          })
-        }
-      ]
+            source: "mock",
+          }),
+        },
+      ],
     };
   }
 
@@ -152,12 +155,12 @@ class SimpleMCPMarketDataServer {
     }
 
     const subscriptionId = `price_${context.instrument.symbol}_${Date.now()}`;
-    
+
     if (this.config.enableStreaming) {
       this.streamingConnections.set(subscriptionId, {
         type: "price",
         context,
-        created: new Date()
+        created: new Date(),
       });
     }
 
@@ -165,14 +168,14 @@ class SimpleMCPMarketDataServer {
       content: [
         {
           type: "text",
-          text: JSON.stringify({ 
-            subscriptionId, 
+          text: JSON.stringify({
+            subscriptionId,
             status: "subscribed",
             symbol: context.instrument.symbol,
-            message: "Price stream subscription created"
-          })
-        }
-      ]
+            message: "Price stream subscription created",
+          }),
+        },
+      ],
     };
   }
 
@@ -200,12 +203,12 @@ async function main() {
       twelveData: { apiKey: process.env["TWELVE_DATA_API_KEY"] || "" },
       coinGecko: { apiKey: process.env["COINGECKO_API_KEY"] },
       alphaVantage: { apiKey: process.env["ALPHA_VANTAGE_API_KEY"] || "" },
-      ccxt: { exchanges: ["binance", "coinbase", "kraken"] }
-    }
+      ccxt: { exchanges: ["binance", "coinbase", "kraken"] },
+    },
   };
 
   const server = new SimpleMCPMarketDataServer(config);
-  
+
   // Handle graceful shutdown
   process.on("SIGINT", async () => {
     console.error("Received SIGINT, shutting down gracefully...");

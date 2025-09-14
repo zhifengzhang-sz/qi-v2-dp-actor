@@ -1,0 +1,58 @@
+{
+  "name": "@qi/dp/connectors",
+  "version": "0.1.0",
+  "description": "QiCore Data Processing Connectors - KafkaJS/Redpanda connection infrastructure for streaming data",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "bun tsup",
+    "clean": "bun rimraf dist",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prepublishOnly": "bun run clean && bun run build"
+  },
+  "keywords": [
+    "qicore",
+    "data-processing",
+    "connectors",
+    "kafka",
+    "redpanda",
+    "streaming",
+    "infrastructure",
+    "connection",
+    "typescript"
+  ],
+  "author": "Qi Platform",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@qi/base": "file:../../../../qi-v2-qicore/typescript/lib/base",
+    "@qi/core": "file:../../../../qi-v2-qicore/typescript/lib/core",
+    "@qi/dp/actors": "file:../actors",
+    "@qi/dp/dsl": "file:../dsl",
+    "@qi/dp/md": "file:../md",
+    "@platformatic/kafka": "^1.0.0"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.10",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3",
+    "vitest": "^1.6.1"
+  }
+}
