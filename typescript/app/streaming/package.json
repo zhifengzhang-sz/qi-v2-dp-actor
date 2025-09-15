@@ -1,0 +1,20 @@
+{
+  "name": "@qi/dp-actor-streaming-examples",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Example applications demonstrating the @qi/base streaming module",
+  "type": "module",
+  "scripts": {
+    "producer": "bun run producer.ts",
+    "consumer": "bun run consumer.ts",
+    "admin": "bun run admin.ts",
+    "dev:producer": "bun --watch producer.ts",
+    "dev:consumer": "bun --watch consumer.ts"
+  },
+  "dependencies": {
+    "@qi/base": "workspace:../../../qi-v2-qicore/typescript/lib/base"
+  },
+  "devDependencies": {
+    "bun-types": "^1.0.0"
+  }
+}
