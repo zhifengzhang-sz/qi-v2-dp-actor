@@ -5,7 +5,7 @@
  * infrastructure integration for proper observability and error handling.
  */
 
-import { Err, Ok, type Result, create, flatMap, fromAsyncTryCatch, match } from "@qi/base";
+import { Err, Ok, type Result, create, fromAsyncTryCatch, isFailure, flatMap } from "@qi/base";
 import type { QiError } from "@qi/base";
 import type { Logger } from "@qi/core";
 import type { Kafka, Producer } from "kafkajs";
@@ -57,7 +57,7 @@ export class StreamingProducer implements IStreamingProducer {
 
     // Step 1: Create producer instance (sync operation)
     const instanceResult = this.createProducerInstance();
-    if (instanceResult.tag === "failure") {
+    if (isFailure(instanceResult)) {
       return instanceResult;
     }
 
@@ -149,15 +149,9 @@ export class StreamingProducer implements IStreamingProducer {
     }
 
     // Step 1: Validate message (sync operation)
-    const messageResult = this.validateMessage(message);
-    if (messageResult.tag === "failure") {
-      return messageResult;
-    }
-
-    const validatedMessage = messageResult.value;
-
-    // Step 2: Send message using fromAsyncTryCatch
-    return fromAsyncTryCatch(
+    // Step 2: Send message using flatMap and fromAsyncTryCatch
+    return flatMap(
+      (validatedMessage) => fromAsyncTryCatch(
       async () => {
         opLogger.debug("Sending message", {
           topic,
@@ -224,6 +218,8 @@ export class StreamingProducer implements IStreamingProducer {
         });
         return qiError;
       }
+    ),
+    this.validateMessage(message)
     );
   }
 
@@ -245,15 +241,9 @@ export class StreamingProducer implements IStreamingProducer {
     }
 
     // Step 1: Validate batch (sync operation)
-    const batchResult = this.validateMessageBatch(batch);
-    if (batchResult.tag === "failure") {
-      return batchResult;
-    }
-
-    const validatedBatch = batchResult.value;
-
-    // Step 2: Send batch using fromAsyncTryCatch
-    return fromAsyncTryCatch(
+    // Step 2: Send batch using flatMap and fromAsyncTryCatch
+    return flatMap(
+      (validatedBatch) => fromAsyncTryCatch(
       async () => {
         opLogger.debug("Sending message batch", {
           topic: validatedBatch.topic,
@@ -317,6 +307,8 @@ export class StreamingProducer implements IStreamingProducer {
         });
         return qiError;
       }
+    ),
+    this.validateMessageBatch(batch)
     );
   }
 

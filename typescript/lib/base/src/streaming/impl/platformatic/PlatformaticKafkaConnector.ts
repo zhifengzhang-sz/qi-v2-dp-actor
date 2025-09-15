@@ -6,7 +6,7 @@
  */
 
 import { Consumer, Producer, stringDeserializers, stringSerializers } from "@platformatic/kafka";
-import { Err, Ok, type Result } from "@qi/base";
+import { Err, Ok, type Result, fromTryCatch, fromAsyncTryCatch } from "@qi/base";
 import type { Logger } from "@qi/core";
 
 import type {
@@ -29,16 +29,19 @@ class PlatformaticProducer implements IStreamingProducer {
   }
 
   async connect(): Promise<Result<void, Error>> {
-    try {
-      // @platformatic/kafka producers don't have explicit connect - they auto-connect on first use
-      this.isConnected = true;
-      this.logger.info("Platformatic Kafka producer ready");
-      return Ok(undefined);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      this.logger.error("Failed to prepare producer", { error: errorMessage });
-      return Err(new Error(`Producer preparation failed: ${errorMessage}`));
-    }
+    return fromAsyncTryCatch(
+      async () => {
+        // @platformatic/kafka producers don't have explicit connect - they auto-connect on first use
+        this.isConnected = true;
+        this.logger.info("Platformatic Kafka producer ready");
+        return undefined;
+      },
+      (error) => {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        this.logger.error("Failed to prepare producer", { error: errorMessage });
+        return new Error(`Producer preparation failed: ${errorMessage}`);
+      }
+    );
   }
 
   async produce(topic: string, message: StreamingMessage): Promise<Result<void, Error>> {
@@ -46,22 +49,25 @@ class PlatformaticProducer implements IStreamingProducer {
       return Err(new Error("Producer not connected"));
     }
 
-    try {
-      await this.producer.send({
-        messages: [
-          {
-            topic,
-            key: message.key || "",
-            value: message.value,
-            headers: message.headers || {},
-          },
-        ],
-      });
-      return Ok(undefined);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      return Err(new Error(`Failed to produce message: ${errorMessage}`));
-    }
+    return fromAsyncTryCatch(
+      async () => {
+        await this.producer.send({
+          messages: [
+            {
+              topic,
+              key: message.key || "",
+              value: message.value,
+              headers: message.headers || {},
+            },
+          ],
+        });
+        return undefined;
+      },
+      (error) => {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return new Error(`Failed to produce message: ${errorMessage}`);
+      }
+    );
   }
 
   async produceBatch(topic: string, messages: StreamingMessage[]): Promise<Result<void, Error>> {
@@ -69,20 +75,23 @@ class PlatformaticProducer implements IStreamingProducer {
       return Err(new Error("Producer not connected"));
     }
 
-    try {
-      await this.producer.send({
-        messages: messages.map((msg) => ({
-          topic,
-          key: msg.key || "",
-          value: msg.value,
-          headers: msg.headers || {},
-        })),
-      });
-      return Ok(undefined);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      return Err(new Error(`Failed to produce batch: ${errorMessage}`));
-    }
+    return fromAsyncTryCatch(
+      async () => {
+        await this.producer.send({
+          messages: messages.map((msg) => ({
+            topic,
+            key: msg.key || "",
+            value: msg.value,
+            headers: msg.headers || {},
+          })),
+        });
+        return undefined;
+      },
+      (error) => {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return new Error(`Failed to produce batch: ${errorMessage}`);
+      }
+    );
   }
 
   async disconnect(): Promise<Result<void, Error>> {
