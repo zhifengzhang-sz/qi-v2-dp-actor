@@ -44,15 +44,13 @@
     "paths": {
       "@qi/base": ["../../qi-v2-qicore/typescript/dist/base.d.ts"],
       "@qi/core": ["../../qi-v2-qicore/typescript/dist/core.d.ts"],
-      "@qi/dp/*": ["lib/src/*"],
-      "@qi/dp/actor/*": ["lib/src/*"],
-      "@qi/dp/actor/dsl/*": ["lib/src/dsl/*"],
-      "@qi/dp/actor/market/*": ["lib/src/market/*"],
-      "@qi/dp/actor/mcp/*": ["lib/src/mcp/*"],
-      "@qi/dp/actor/analytics/*": ["lib/src/analytics/*"],
-      "@qi/dp/actor/functional/*": ["lib/src/functional/*"],
-      "@qi/dp/actor/performance/*": ["lib/src/performance/*"],
-      "@qi/dp/actor/testing/*": ["lib/src/testing/*"]
+      "@qi/dp/dsl": ["lib/dsl/src/*"],
+      "@qi/dp/md": ["lib/md/src/*"],
+      "@qi/dp/utils": ["lib/utils/src/*"],
+      "@qi/dp/base": ["lib/base/src/*"],
+      "@qi/dp/actor": ["lib/actor/src/*"],
+      "@qi/dp/generic": ["lib/generic/src/*"],
+      "@qi/dp/mcp": ["lib/mcp/src/*"]
     },
 
     // Skip lib checking for faster builds
@@ -67,8 +65,8 @@
     // Project references configuration (disabled for build)
     "composite": false
   },
-  "include": ["lib/src/**/*"],
-  "exclude": ["node_modules", "dist", "docs", "lib/tests"],
+  "include": ["lib/*/src/**/*"],
+  "exclude": ["node_modules", "dist", "docs", "lib/*/tests"],
   "ts-node": {
     "esm": true,
     "swc": true

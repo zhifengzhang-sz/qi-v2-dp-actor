@@ -51,7 +51,7 @@
     "@qi/core": "workspace:../../../../qi-v2-qicore/typescript/lib/core",
     "@qi/dp/dsl": "workspace:../dsl",
     "@qi/dp/md": "workspace:../md",
-    "@qi/dp/actors": "workspace:../actors",
+    "@qi/dp/actor": "workspace:../actor",
     "@qi/dp/base": "workspace:../base",
     "@confluentinc/kafka-javascript": "^0.2.0",
     "@platformatic/kafka": "^1.0.0",
