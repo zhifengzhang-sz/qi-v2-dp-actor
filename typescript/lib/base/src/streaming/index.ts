@@ -15,7 +15,6 @@ export type {
   ProducerConfig,
   ConsumerConfig,
   TopicConfig,
-  StreamingInfrastructure,
   // Message types
   StreamingMessage,
   MessageBatch,
@@ -45,7 +44,7 @@ export type {
   StreamingConsumerConfig,
   ConnectorFactoryConfig,
   StreamingBackend,
-} from "./interfaces/StreamingConnector.js";
+} from "./interfaces/connector.js";
 
 // =============================================================================
 // IMPLEMENTATION EXPORTS
@@ -61,8 +60,8 @@ export {
 } from "./client.js";
 
 // Connector factory and implementations
-export { ConnectorFactory } from "./factories/ConnectorFactory.js";
-export { PlatformaticKafkaConnector } from "./impl/platformatic/PlatformaticKafkaConnector.js";
+export { ConnectorFactory } from "./factories/factory.js";
+// export { PlatformaticKafkaConnector } from "./impl/platformatic/connector.js"; // Disabled - missing dependencies
 
 // =============================================================================
 // CONVENIENCE RE-EXPORTS

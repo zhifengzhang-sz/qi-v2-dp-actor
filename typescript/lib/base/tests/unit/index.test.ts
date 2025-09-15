@@ -1,7 +1,7 @@
 /**
  * Basic base module test
  */
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 
 describe("Base Module", () => {
   it("should have basic module structure", () => {

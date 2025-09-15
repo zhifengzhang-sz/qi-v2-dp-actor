@@ -5,10 +5,19 @@
  * and @qi/core infrastructure integration for proper observability and error handling.
  */
 
-import { Err, Ok, type Result, create, flatMap, fromAsyncTryCatch, fromTryCatch, isFailure } from "@qi/base";
+import {
+  Err,
+  Ok,
+  type Result,
+  create,
+  flatMap,
+  fromAsyncTryCatch,
+  fromTryCatch,
+  isFailure,
+} from "@qi/base";
 import type { QiError } from "@qi/base";
 import type { Logger } from "@qi/core";
-import { type Admin, type ITopicConfig, type Kafka } from "kafkajs";
+import type { Admin, ITopicConfig, Kafka } from "kafkajs";
 import type {
   IStreamingAdmin,
   StreamingConfig,
@@ -26,7 +35,7 @@ export class StreamingAdmin implements IStreamingAdmin {
   constructor(
     private readonly kafka: Kafka,
     private readonly streamingConfig: StreamingConfig,
-    private readonly logger: Logger
+    private readonly logger: Logger,
   ) {
     this.operationLogger = this.logger.child({
       component: "StreamingAdmin",
@@ -68,7 +77,7 @@ export class StreamingAdmin implements IStreamingAdmin {
         const qiError = this.createStreamingError(
           "STREAMING_CONNECTION_FAILED",
           `Failed to connect admin client: ${error instanceof Error ? error.message : "Unknown error"}`,
-          { operation: "connect", error: String(error) }
+          { operation: "connect", error: String(error) },
         );
 
         opLogger.error("Admin client connection failed", undefined, {
@@ -78,7 +87,7 @@ export class StreamingAdmin implements IStreamingAdmin {
         });
 
         return qiError;
-      }
+      },
     );
   }
 
@@ -105,7 +114,7 @@ export class StreamingAdmin implements IStreamingAdmin {
         const qiError = this.createStreamingError(
           "STREAMING_DISCONNECTION_FAILED",
           `Failed to disconnect admin client: ${error instanceof Error ? error.message : "Unknown error"}`,
-          { operation: "disconnect", error: String(error) }
+          { operation: "disconnect", error: String(error) },
         );
 
         opLogger.error("Admin client disconnection failed", undefined, {
@@ -114,7 +123,7 @@ export class StreamingAdmin implements IStreamingAdmin {
           errorMessage: qiError.message,
         });
         return qiError;
-      }
+      },
     );
   }
 
@@ -137,26 +146,30 @@ export class StreamingAdmin implements IStreamingAdmin {
       const error = this.createStreamingError(
         "STREAMING_ADMIN_FAILED",
         "Admin client not connected",
-        { operation: "createTopics", topics: topics.map((t) => t.topic) }
+        { operation: "createTopics", topics: topics.map((t) => t.topic) },
       );
       opLogger.error("Create topics failed - admin not connected", new Error(error.message));
       return Err(error);
     }
 
     // Step 1: Validate topic configs (sync operation)
-    // Step 2: Create topics using flatMap and fromAsyncTryCatch
-    return flatMap(
-      (validatedTopics) => fromAsyncTryCatch(
+    const validatedTopics = this.validateTopicConfigs(topics);
+    if (isFailure(validatedTopics)) {
+      return Promise.resolve(validatedTopics);
+    }
+
+    // Step 2: Create topics using fromAsyncTryCatch
+    return fromAsyncTryCatch(
       async () => {
         opLogger.info("Creating topics", {
-          topics: validatedTopics.map((t: TopicConfig) => ({
+          topics: validatedTopics.value.map((t: TopicConfig) => ({
             name: t.topic,
             partitions: t.numPartitions,
             replicationFactor: t.replicationFactor,
           })),
         });
 
-        const kafkaTopics: ITopicConfig[] = validatedTopics.map((topic: TopicConfig) => ({
+        const kafkaTopics: ITopicConfig[] = validatedTopics.value.map((topic: TopicConfig) => ({
           topic: topic.topic,
           numPartitions: topic.numPartitions ?? 1,
           replicationFactor: topic.replicationFactor ?? 1,
@@ -181,7 +194,7 @@ export class StreamingAdmin implements IStreamingAdmin {
         const qiError = this.createStreamingError(
           "STREAMING_TOPIC_CREATE_FAILED",
           `Failed to create topics: ${error instanceof Error ? error.message : "Unknown error"}`,
-          { operation: "createTopics", topics: topics.map((t) => t.topic), error: String(error) }
+          { operation: "createTopics", topics: topics.map((t) => t.topic), error: String(error) },
         );
 
         opLogger.error("Topic creation failed", undefined, {
@@ -190,9 +203,7 @@ export class StreamingAdmin implements IStreamingAdmin {
           errorMessage: qiError.message,
         });
         return qiError;
-      }
-    ),
-    this.validateTopicConfigs(topics)
+      },
     );
   }
 
@@ -207,21 +218,25 @@ export class StreamingAdmin implements IStreamingAdmin {
       const error = this.createStreamingError(
         "STREAMING_ADMIN_FAILED",
         "Admin client not connected",
-        { operation: "deleteTopics", topics: topicNames }
+        { operation: "deleteTopics", topics: topicNames },
       );
       opLogger.error("Delete topics failed - admin not connected", new Error(error.message));
       return Err(error);
     }
 
     // Step 1: Validate topic names (sync operation)
-    // Step 2: Delete topics using flatMap and fromAsyncTryCatch
-    return flatMap(
-      (validatedNames) => fromAsyncTryCatch(
+    const validatedNames = this.validateTopicNames(topicNames);
+    if (isFailure(validatedNames)) {
+      return Promise.resolve(validatedNames);
+    }
+
+    // Step 2: Delete topics using fromAsyncTryCatch
+    return fromAsyncTryCatch(
       async () => {
         opLogger.info("Deleting topics");
 
         await this.admin?.deleteTopics({
-          topics: [...validatedNames],
+          topics: [...validatedNames.value],
         });
 
         opLogger.info("Topics deleted successfully");
@@ -232,7 +247,7 @@ export class StreamingAdmin implements IStreamingAdmin {
         const qiError = this.createStreamingError(
           "STREAMING_TOPIC_DELETE_FAILED",
           `Failed to delete topics: ${error instanceof Error ? error.message : "Unknown error"}`,
-          { operation: "deleteTopics", topics: topicNames, error: String(error) }
+          { operation: "deleteTopics", topics: topicNames, error: String(error) },
         );
 
         opLogger.error("Topic deletion failed", undefined, {
@@ -241,9 +256,7 @@ export class StreamingAdmin implements IStreamingAdmin {
           errorMessage: qiError.message,
         });
         return qiError;
-      }
-    ),
-    this.validateTopicNames(topicNames)
+      },
     );
   }
 
@@ -254,7 +267,7 @@ export class StreamingAdmin implements IStreamingAdmin {
       const error = this.createStreamingError(
         "STREAMING_ADMIN_FAILED",
         "Admin client not connected",
-        { operation: "listTopics" }
+        { operation: "listTopics" },
       );
       opLogger.error("List topics failed - admin not connected", new Error(error.message));
       return Err(error);
@@ -282,7 +295,7 @@ export class StreamingAdmin implements IStreamingAdmin {
         const qiError = this.createStreamingError(
           "STREAMING_METADATA_FAILED",
           `Failed to list topics: ${error instanceof Error ? error.message : "Unknown error"}`,
-          { operation: "listTopics", error: String(error) }
+          { operation: "listTopics", error: String(error) },
         );
 
         opLogger.error("Topic listing failed", undefined, {
@@ -291,12 +304,12 @@ export class StreamingAdmin implements IStreamingAdmin {
           errorMessage: qiError.message,
         });
         return qiError;
-      }
+      },
     );
   }
 
   async getTopicMetadata(
-    topics: readonly string[]
+    topics: readonly string[],
   ): Promise<Result<readonly TopicMetadata[], QiError>> {
     const opLogger = this.operationLogger.child({
       operation: "getTopicMetadata",
@@ -308,21 +321,25 @@ export class StreamingAdmin implements IStreamingAdmin {
       const error = this.createStreamingError(
         "STREAMING_ADMIN_FAILED",
         "Admin client not connected",
-        { operation: "getTopicMetadata", topics }
+        { operation: "getTopicMetadata", topics },
       );
       opLogger.error("Get topic metadata failed - admin not connected", new Error(error.message));
       return Err(error);
     }
 
     // Step 1: Validate topic names (sync operation)
-    // Step 2: Fetch metadata using flatMap and fromAsyncTryCatch
-    return flatMap(
-      (validatedTopics) => fromAsyncTryCatch(
+    const validatedTopics = this.validateTopicNamesForMetadata(topics);
+    if (isFailure(validatedTopics)) {
+      return Promise.resolve(validatedTopics);
+    }
+
+    // Step 2: Fetch metadata using fromAsyncTryCatch
+    return fromAsyncTryCatch(
       async () => {
         opLogger.debug("Fetching topic metadata");
 
         const metadata = await this.admin?.fetchTopicMetadata({
-          topics: [...validatedTopics],
+          topics: [...validatedTopics.value],
         });
         if (!metadata) {
           // Return empty metadata as valid result rather than throwing
@@ -351,7 +368,7 @@ export class StreamingAdmin implements IStreamingAdmin {
         const qiError = this.createStreamingError(
           "STREAMING_METADATA_FAILED",
           `Failed to fetch topic metadata: ${error instanceof Error ? error.message : "Unknown error"}`,
-          { operation: "getTopicMetadata", topics, error: String(error) }
+          { operation: "getTopicMetadata", topics, error: String(error) },
         );
 
         opLogger.error("Topic metadata fetch failed", undefined, {
@@ -360,9 +377,7 @@ export class StreamingAdmin implements IStreamingAdmin {
           errorMessage: qiError.message,
         });
         return qiError;
-      }
-    ),
-    this.validateTopicNamesForMetadata(topics)
+      },
     );
   }
 
@@ -376,22 +391,23 @@ export class StreamingAdmin implements IStreamingAdmin {
         this.admin = this.kafka.admin();
         return undefined;
       },
-      (error) => this.createStreamingError(
-        "STREAMING_CONNECTION_FAILED",
-        `Failed to create admin instance: ${error instanceof Error ? error.message : "Unknown error"}`,
-        { operation: "createAdminInstance", error: String(error) }
-      )
+      (error) =>
+        this.createStreamingError(
+          "STREAMING_CONNECTION_FAILED",
+          `Failed to create admin instance: ${error instanceof Error ? error.message : "Unknown error"}`,
+          { operation: "createAdminInstance", error: String(error) },
+        ),
     );
   }
 
   private validateTopicConfigs(
-    topics: readonly TopicConfig[]
+    topics: readonly TopicConfig[],
   ): Result<readonly TopicConfig[], QiError> {
     if (!topics || topics.length === 0) {
       return Err(
         this.createStreamingError("STREAMING_TOPIC_CREATE_FAILED", "Topic list cannot be empty", {
           operation: "validateTopicConfigs",
-        })
+        }),
       );
     }
 
@@ -401,13 +417,13 @@ export class StreamingAdmin implements IStreamingAdmin {
         this.createStreamingError(
           "STREAMING_TOPIC_CREATE_FAILED",
           "All topic names must be non-empty strings",
-          { operation: "validateTopicConfigs", invalidTopics: invalidTopics.length }
-        )
+          { operation: "validateTopicConfigs", invalidTopics: invalidTopics.length },
+        ),
       );
     }
 
     const invalidPartitions = topics.filter(
-      (topic) => topic.numPartitions !== undefined && topic.numPartitions < 1
+      (topic) => topic.numPartitions !== undefined && topic.numPartitions < 1,
     );
     if (invalidPartitions.length > 0) {
       return Err(
@@ -417,13 +433,13 @@ export class StreamingAdmin implements IStreamingAdmin {
           {
             operation: "validateTopicConfigs",
             invalidPartitions: invalidPartitions.map((t) => t.topic),
-          }
-        )
+          },
+        ),
       );
     }
 
     const invalidReplication = topics.filter(
-      (topic) => topic.replicationFactor !== undefined && topic.replicationFactor < 1
+      (topic) => topic.replicationFactor !== undefined && topic.replicationFactor < 1,
     );
     if (invalidReplication.length > 0) {
       return Err(
@@ -433,8 +449,8 @@ export class StreamingAdmin implements IStreamingAdmin {
           {
             operation: "validateTopicConfigs",
             invalidReplication: invalidReplication.map((t) => t.topic),
-          }
-        )
+          },
+        ),
       );
     }
 
@@ -449,8 +465,8 @@ export class StreamingAdmin implements IStreamingAdmin {
           "Topic name list cannot be empty",
           {
             operation: "validateTopicNames",
-          }
-        )
+          },
+        ),
       );
     }
 
@@ -460,8 +476,8 @@ export class StreamingAdmin implements IStreamingAdmin {
         this.createStreamingError(
           "STREAMING_TOPIC_DELETE_FAILED",
           "All topic names must be non-empty strings",
-          { operation: "validateTopicNames", invalidNames }
-        )
+          { operation: "validateTopicNames", invalidNames },
+        ),
       );
     }
 
@@ -469,13 +485,13 @@ export class StreamingAdmin implements IStreamingAdmin {
   }
 
   private validateTopicNamesForMetadata(
-    topicNames: readonly string[]
+    topicNames: readonly string[],
   ): Result<readonly string[], QiError> {
     if (!topicNames || topicNames.length === 0) {
       return Err(
         this.createStreamingError("STREAMING_METADATA_FAILED", "Topic name list cannot be empty", {
           operation: "validateTopicNamesForMetadata",
-        })
+        }),
       );
     }
 
@@ -485,8 +501,8 @@ export class StreamingAdmin implements IStreamingAdmin {
         this.createStreamingError(
           "STREAMING_METADATA_FAILED",
           "All topic names must be non-empty strings",
-          { operation: "validateTopicNamesForMetadata", invalidNames }
-        )
+          { operation: "validateTopicNamesForMetadata", invalidNames },
+        ),
       );
     }
 
@@ -496,7 +512,7 @@ export class StreamingAdmin implements IStreamingAdmin {
   private createStreamingError(
     code: StreamingErrorCode,
     message: string,
-    context: Partial<StreamingErrorContext> = {}
+    context: Partial<StreamingErrorContext> = {},
   ): QiError {
     return create(code, message, "SYSTEM", {
       component: "StreamingAdmin",

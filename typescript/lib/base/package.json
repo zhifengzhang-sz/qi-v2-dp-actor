@@ -48,9 +48,7 @@
   },
   "dependencies": {
     "@qi/base": "workspace:../../../../qi-v2-qicore/typescript/lib/base",
-    "@qi/core": "workspace:../../../../qi-v2-qicore/typescript/lib/core",
-    "@qi/dp/dsl": "workspace:../dsl",
-    "kafkajs": "^2.2.4"
+    "@qi/dp/dsl": "workspace:../dsl"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.3",

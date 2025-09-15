@@ -61,7 +61,7 @@
     "build": "bun run build:modules && tsup lib/src/index.ts --format cjs,esm --dts --clean",
     "build:modules": "bun run build:dsl && bun run build:md && bun run build:actors && bun run build:base && bun run build:generic && bun run build:mcp && bun run build:connectors && bun run build:utils",
     "build:dsl": "cd lib/dsl && bun run build",
-    "build:md": "cd lib/md && bun run build", 
+    "build:md": "cd lib/md && bun run build",
     "build:actors": "cd lib/actors && bun run build",
     "build:base": "cd lib/base && bun run build",
     "build:generic": "cd lib/generic && bun run build",
@@ -127,6 +127,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
+    "@confluentinc/kafka-javascript": "^1.4.1",
     "@modelcontextprotocol/sdk": "^1.17.4",
     "@qi/base": "workspace:../../qi-v2-qicore/typescript/lib/base",
     "@qi/core": "workspace:../../qi-v2-qicore/typescript/lib/core",

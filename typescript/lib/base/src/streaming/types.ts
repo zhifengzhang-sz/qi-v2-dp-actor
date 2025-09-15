@@ -6,15 +6,6 @@
  */
 
 import type { QiError, Result } from "@qi/base";
-import type { Config, ICache, Logger } from "@qi/core";
-import type {
-  Admin,
-  Consumer,
-  ConsumerRunConfig,
-  Message,
-  Producer,
-  ProducerRecord,
-} from "kafkajs";
 
 // =============================================================================
 // CONFIGURATION TYPES
@@ -89,6 +80,24 @@ export interface ConsumerConfig {
 }
 
 /**
+ * Consumer run configuration for message processing
+ */
+export interface ConsumerRunConfig {
+  /** Function to process each message */
+  readonly eachMessage?: (payload: {
+    readonly topic: string;
+    readonly partition: number;
+    readonly message: {
+      readonly key: Buffer | null;
+      readonly value: Buffer | null;
+      readonly timestamp: string;
+      readonly offset: string;
+      readonly headers?: Record<string, Buffer | string | undefined>;
+    };
+  }) => Promise<void>;
+}
+
+/**
  * Topic configuration for admin operations
  */
 export interface TopicConfig {
@@ -109,18 +118,8 @@ export interface TopicConfig {
 }
 
 // =============================================================================
-// INFRASTRUCTURE TYPES
+// MESSAGE TYPES
 // =============================================================================
-
-/**
- * Streaming infrastructure dependencies
- * Combines @qi/core tools for observability and configuration
- */
-export interface StreamingInfrastructure {
-  readonly config: Config;
-  readonly logger: Logger;
-  readonly cache: ICache;
-}
 
 /**
  * Message format for streaming operations

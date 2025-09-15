@@ -6,19 +6,22 @@
  */
 
 import { Consumer, Producer, stringDeserializers, stringSerializers } from "@platformatic/kafka";
-import { Err, Ok, type Result, fromTryCatch, fromAsyncTryCatch } from "@qi/base";
+import { Err, Ok, type Result, fromAsyncTryCatch, fromTryCatch } from "@qi/base";
 import type { Logger } from "@qi/core";
 
 import type {
-  IStreamingConnector,
-  IStreamingConsumer,
-  IStreamingProducer,
-  StreamingConsumerConfig,
-  StreamingMessage,
-  StreamingProducerConfig,
-} from "../interfaces/StreamingConnector.js";
+  AdminConfig,
+  ConsumerConfig,
+  IAdmin,
+  IConnector,
+  IConsumer,
+  IProducer,
+  Message,
+  ProducerConfig,
+  TopicConfig,
+} from "../../interfaces/connector.js";
 
-class PlatformaticProducer implements IStreamingProducer {
+class PlatformaticProducer implements IProducer {
   private producer: Producer<string, string, string, string>;
   private logger: Logger;
   private isConnected = false;
@@ -40,11 +43,11 @@ class PlatformaticProducer implements IStreamingProducer {
         const errorMessage = error instanceof Error ? error.message : String(error);
         this.logger.error("Failed to prepare producer", { error: errorMessage });
         return new Error(`Producer preparation failed: ${errorMessage}`);
-      }
+      },
     );
   }
 
-  async produce(topic: string, message: StreamingMessage): Promise<Result<void, Error>> {
+  async produce(topic: string, message: Message): Promise<Result<void, Error>> {
     if (!this.isConnected) {
       return Err(new Error("Producer not connected"));
     }
@@ -66,11 +69,11 @@ class PlatformaticProducer implements IStreamingProducer {
       (error) => {
         const errorMessage = error instanceof Error ? error.message : String(error);
         return new Error(`Failed to produce message: ${errorMessage}`);
-      }
+      },
     );
   }
 
-  async produceBatch(topic: string, messages: StreamingMessage[]): Promise<Result<void, Error>> {
+  async produceBatch(topic: string, messages: Message[]): Promise<Result<void, Error>> {
     if (!this.isConnected) {
       return Err(new Error("Producer not connected"));
     }
@@ -90,7 +93,7 @@ class PlatformaticProducer implements IStreamingProducer {
       (error) => {
         const errorMessage = error instanceof Error ? error.message : String(error);
         return new Error(`Failed to produce batch: ${errorMessage}`);
-      }
+      },
     );
   }
 
@@ -107,7 +110,7 @@ class PlatformaticProducer implements IStreamingProducer {
   }
 }
 
-class PlatformaticConsumer implements IStreamingConsumer {
+class PlatformaticConsumer implements IConsumer {
   private consumer: Consumer<string, string, string, string>;
   private logger: Logger;
   private isConnected = false;
@@ -146,13 +149,13 @@ class PlatformaticConsumer implements IStreamingConsumer {
     }
   }
 
-  async consume(): Promise<Result<StreamingMessage[], Error>> {
+  async consume(): Promise<Result<Message[], Error>> {
     if (!this.isConnected || this.subscribedTopics.length === 0) {
       return Err(new Error("Consumer not ready or no topics subscribed"));
     }
 
     try {
-      const messages: StreamingMessage[] = [];
+      const messages: Message[] = [];
 
       // Note: This is a simplified implementation. In a real scenario,
       // you would need to implement proper consumption logic with @platformatic/kafka
@@ -194,14 +197,58 @@ class PlatformaticConsumer implements IStreamingConsumer {
   }
 }
 
-export class PlatformaticKafkaConnector implements IStreamingConnector {
+class PlatformaticAdmin implements IAdmin {
   private logger: Logger;
 
   constructor(logger: Logger) {
     this.logger = logger;
   }
 
-  private mapSaslMechanism(mechanism: string): "PLAIN" | "SCRAM-SHA-256" | "SCRAM-SHA-512" | "OAUTHBEARER" {
+  async connect(): Promise<Result<void, import("@qi/base").QiError>> {
+    // Platformatic doesn't have separate admin connection
+    return Ok(undefined);
+  }
+
+  async disconnect(): Promise<Result<void, import("@qi/base").QiError>> {
+    // Platformatic doesn't have separate admin disconnection
+    return Ok(undefined);
+  }
+
+  async createTopics(_topics: TopicConfig[]): Promise<Result<void, import("@qi/base").QiError>> {
+    // TODO: Implement topic creation for Platformatic
+    this.logger.warn("Topic creation not yet implemented for Platformatic");
+    return Err(new Error("Topic creation not implemented") as any);
+  }
+
+  async deleteTopics(_topicNames: string[]): Promise<Result<void, import("@qi/base").QiError>> {
+    // TODO: Implement topic deletion for Platformatic
+    this.logger.warn("Topic deletion not yet implemented for Platformatic");
+    return Err(new Error("Topic deletion not implemented") as any);
+  }
+
+  async listTopics(): Promise<Result<string[], import("@qi/base").QiError>> {
+    // TODO: Implement topic listing for Platformatic
+    this.logger.warn("Topic listing not yet implemented for Platformatic");
+    return Err(new Error("Topic listing not implemented") as any);
+  }
+
+  async getTopicMetadata(_topics: string[]): Promise<Result<any, import("@qi/base").QiError>> {
+    // TODO: Implement topic metadata for Platformatic
+    this.logger.warn("Topic metadata not yet implemented for Platformatic");
+    return Err(new Error("Topic metadata not implemented") as any);
+  }
+}
+
+export class PlatformaticKafkaConnector implements IConnector {
+  private logger: Logger;
+
+  constructor(logger: Logger) {
+    this.logger = logger;
+  }
+
+  private mapSaslMechanism(
+    mechanism: string,
+  ): "PLAIN" | "SCRAM-SHA-256" | "SCRAM-SHA-512" | "OAUTHBEARER" {
     switch (mechanism.toLowerCase()) {
       case "plain":
         return "PLAIN";
@@ -214,9 +261,7 @@ export class PlatformaticKafkaConnector implements IStreamingConnector {
     }
   }
 
-  async createProducer(
-    config: StreamingProducerConfig
-  ): Promise<Result<IStreamingProducer, Error>> {
+  async createProducer(config: ProducerConfig): Promise<Result<IProducer, Error>> {
     try {
       const producerConfig: any = {
         clientId: config.clientId,
@@ -244,9 +289,7 @@ export class PlatformaticKafkaConnector implements IStreamingConnector {
     }
   }
 
-  async createConsumer(
-    config: StreamingConsumerConfig
-  ): Promise<Result<IStreamingConsumer, Error>> {
+  async createConsumer(config: ConsumerConfig): Promise<Result<IConsumer, Error>> {
     try {
       const consumerConfig: any = {
         clientId: config.clientId,
@@ -272,6 +315,16 @@ export class PlatformaticKafkaConnector implements IStreamingConnector {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       return Err(new Error(`Failed to create consumer: ${errorMessage}`));
+    }
+  }
+
+  async createAdmin(_config: AdminConfig): Promise<Result<IAdmin, Error>> {
+    try {
+      // Platformatic doesn't have separate admin client, use logger-based placeholder
+      return Ok(new PlatformaticAdmin(this.logger));
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return Err(new Error(`Failed to create admin: ${errorMessage}`));
     }
   }
 

@@ -5,7 +5,7 @@
  * infrastructure integration for proper observability and error handling.
  */
 
-import { Err, Ok, type Result, create, fromAsyncTryCatch, isFailure, flatMap } from "@qi/base";
+import { Err, Ok, type Result, create, flatMap, fromAsyncTryCatch, isFailure } from "@qi/base";
 import type { QiError } from "@qi/base";
 import type { Logger } from "@qi/core";
 import type { Kafka, Producer } from "kafkajs";
@@ -30,7 +30,7 @@ export class StreamingProducer implements IStreamingProducer {
     private readonly kafka: Kafka,
     private readonly streamingConfig: StreamingConfig,
     private readonly producerConfig: ProducerConfig,
-    private readonly logger: Logger
+    private readonly logger: Logger,
   ) {
     this.operationLogger = this.logger.child({
       component: "StreamingProducer",
@@ -73,7 +73,7 @@ export class StreamingProducer implements IStreamingProducer {
         const qiError = this.createStreamingError(
           "STREAMING_CONNECTION_FAILED",
           `Failed to connect producer: ${error instanceof Error ? error.message : "Unknown error"}`,
-          { operation: "connect", error: String(error) }
+          { operation: "connect", error: String(error) },
         );
 
         opLogger.error("Producer connection failed", undefined, {
@@ -83,7 +83,7 @@ export class StreamingProducer implements IStreamingProducer {
         });
 
         return qiError;
-      }
+      },
     );
   }
 
@@ -110,7 +110,7 @@ export class StreamingProducer implements IStreamingProducer {
         const qiError = this.createStreamingError(
           "STREAMING_DISCONNECTION_FAILED",
           `Failed to disconnect producer: ${error instanceof Error ? error.message : "Unknown error"}`,
-          { operation: "disconnect", error: String(error) }
+          { operation: "disconnect", error: String(error) },
         );
 
         opLogger.error("Producer disconnection failed", undefined, {
@@ -119,7 +119,7 @@ export class StreamingProducer implements IStreamingProducer {
           errorMessage: qiError.message,
         });
         return qiError;
-      }
+      },
     );
   }
 
@@ -142,37 +142,41 @@ export class StreamingProducer implements IStreamingProducer {
       const error = this.createStreamingError(
         "STREAMING_PRODUCER_FAILED",
         "Producer not connected",
-        { operation: "send", topic }
+        { operation: "send", topic },
       );
       opLogger.error("Send failed - producer not connected");
       return Err(error);
     }
 
     // Step 1: Validate message (sync operation)
-    // Step 2: Send message using flatMap and fromAsyncTryCatch
-    return flatMap(
-      (validatedMessage) => fromAsyncTryCatch(
+    const validatedMessage = this.validateMessage(message);
+    if (isFailure(validatedMessage)) {
+      return Promise.resolve(validatedMessage);
+    }
+
+    // Step 2: Send message using fromAsyncTryCatch
+    return fromAsyncTryCatch(
       async () => {
         opLogger.debug("Sending message", {
           topic,
-          messageSize: validatedMessage.value.length,
-          hasKey: !!validatedMessage.key,
-          hasHeaders: !!validatedMessage.headers,
+          messageSize: validatedMessage.value.value.length,
+          hasKey: !!validatedMessage.value.key,
+          hasHeaders: !!validatedMessage.value.headers,
         });
 
         const record = {
           topic,
           messages: [
             {
-              key: validatedMessage.key || null,
-              value: validatedMessage.value,
-              ...(validatedMessage.partition !== undefined && {
-                partition: validatedMessage.partition,
+              key: validatedMessage.value.key || null,
+              value: validatedMessage.value.value,
+              ...(validatedMessage.value.partition !== undefined && {
+                partition: validatedMessage.value.partition,
               }),
-              ...(validatedMessage.timestamp && {
-                timestamp: validatedMessage.timestamp.getTime().toString(),
+              ...(validatedMessage.value.timestamp && {
+                timestamp: validatedMessage.value.timestamp.getTime().toString(),
               }),
-              headers: validatedMessage.headers || {},
+              headers: validatedMessage.value.headers || {},
             },
           ],
         };
@@ -208,7 +212,7 @@ export class StreamingProducer implements IStreamingProducer {
         const qiError = this.createStreamingError(
           "STREAMING_PUBLISH_FAILED",
           `Failed to send message: ${error instanceof Error ? error.message : "Unknown error"}`,
-          { operation: "send", topic, error: String(error) }
+          { operation: "send", topic, error: String(error) },
         );
 
         opLogger.error("Message send failed", undefined, {
@@ -217,9 +221,7 @@ export class StreamingProducer implements IStreamingProducer {
           errorMessage: qiError.message,
         });
         return qiError;
-      }
-    ),
-    this.validateMessage(message)
+      },
     );
   }
 
@@ -234,26 +236,30 @@ export class StreamingProducer implements IStreamingProducer {
       const error = this.createStreamingError(
         "STREAMING_PRODUCER_FAILED",
         "Producer not connected",
-        { operation: "sendBatch", topic: batch.topic }
+        { operation: "sendBatch", topic: batch.topic },
       );
       opLogger.error("Batch send failed - producer not connected");
       return Err(error);
     }
 
     // Step 1: Validate batch (sync operation)
-    // Step 2: Send batch using flatMap and fromAsyncTryCatch
-    return flatMap(
-      (validatedBatch) => fromAsyncTryCatch(
+    const validatedBatch = this.validateMessageBatch(batch);
+    if (isFailure(validatedBatch)) {
+      return Promise.resolve(validatedBatch);
+    }
+
+    // Step 2: Send batch using fromAsyncTryCatch
+    return fromAsyncTryCatch(
       async () => {
         opLogger.debug("Sending message batch", {
-          topic: validatedBatch.topic,
-          messageCount: validatedBatch.messages.length,
-          totalSize: validatedBatch.messages.reduce((sum, msg) => sum + msg.value.length, 0),
+          topic: validatedBatch.value.topic,
+          messageCount: validatedBatch.value.messages.length,
+          totalSize: validatedBatch.value.messages.reduce((sum, msg) => sum + msg.value.length, 0),
         });
 
         const record = {
-          topic: validatedBatch.topic,
-          messages: validatedBatch.messages.map((msg) => ({
+          topic: validatedBatch.value.topic,
+          messages: validatedBatch.value.messages.map((msg) => ({
             key: msg.key || null,
             value: msg.value,
             ...(msg.partition !== undefined && { partition: msg.partition }),
@@ -297,7 +303,7 @@ export class StreamingProducer implements IStreamingProducer {
             topic: batch.topic,
             messageCount: batch.messages.length,
             error: String(error),
-          }
+          },
         );
 
         opLogger.error("Message batch send failed", undefined, {
@@ -306,9 +312,7 @@ export class StreamingProducer implements IStreamingProducer {
           errorMessage: qiError.message,
         });
         return qiError;
-      }
-    ),
-    this.validateMessageBatch(batch)
+      },
     );
   }
 
@@ -331,8 +335,8 @@ export class StreamingProducer implements IStreamingProducer {
         this.createStreamingError(
           "STREAMING_CONNECTION_FAILED",
           `Failed to create producer instance: ${error instanceof Error ? error.message : "Unknown error"}`,
-          { operation: "createProducerInstance", error: String(error) }
-        )
+          { operation: "createProducerInstance", error: String(error) },
+        ),
       );
     }
   }
@@ -342,7 +346,7 @@ export class StreamingProducer implements IStreamingProducer {
       return Err(
         this.createStreamingError("STREAMING_INVALID_MESSAGE", "Message value cannot be empty", {
           operation: "validateMessage",
-        })
+        }),
       );
     }
 
@@ -351,7 +355,7 @@ export class StreamingProducer implements IStreamingProducer {
         this.createStreamingError("STREAMING_INVALID_MESSAGE", "Message key must be a string", {
           operation: "validateMessage",
           keyType: typeof message.key,
-        })
+        }),
       );
     }
 
@@ -363,7 +367,7 @@ export class StreamingProducer implements IStreamingProducer {
       return Err(
         this.createStreamingError("STREAMING_INVALID_MESSAGE", "Batch topic cannot be empty", {
           operation: "validateMessageBatch",
-        })
+        }),
       );
     }
 
@@ -372,7 +376,7 @@ export class StreamingProducer implements IStreamingProducer {
         this.createStreamingError("STREAMING_INVALID_MESSAGE", "Message batch cannot be empty", {
           operation: "validateMessageBatch",
           topic: batch.topic,
-        })
+        }),
       );
     }
 
@@ -385,7 +389,7 @@ export class StreamingProducer implements IStreamingProducer {
             operation: "validateMessageBatch",
             topic: batch.topic,
             messageIndex: i,
-          })
+          }),
         );
       }
       const messageResult = this.validateMessage(message);
@@ -394,8 +398,8 @@ export class StreamingProducer implements IStreamingProducer {
           this.createStreamingError(
             "STREAMING_INVALID_MESSAGE",
             `Invalid message at index ${i}: ${messageResult.error.message}`,
-            { operation: "validateMessageBatch", topic: batch.topic, messageIndex: i }
-          )
+            { operation: "validateMessageBatch", topic: batch.topic, messageIndex: i },
+          ),
         );
       }
     }
@@ -406,7 +410,7 @@ export class StreamingProducer implements IStreamingProducer {
   private createStreamingError(
     code: StreamingErrorCode,
     message: string,
-    context: Partial<StreamingErrorContext> = {}
+    context: Partial<StreamingErrorContext> = {},
   ): QiError {
     return create(code, message, "SYSTEM", {
       component: "StreamingProducer",
