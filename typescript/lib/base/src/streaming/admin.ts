@@ -5,10 +5,10 @@
  * and @qi/core infrastructure integration for proper observability and error handling.
  */
 
-import { Err, Ok, type Result, create, flatMap, fromAsyncTryCatch, match } from "@qi/base";
+import { Err, Ok, type Result, create, flatMap, fromAsyncTryCatch, fromTryCatch, isFailure } from "@qi/base";
 import type { QiError } from "@qi/base";
 import type { Logger } from "@qi/core";
-import { type Admin, type ITopicConfig, ITopicMetadata, type Kafka } from "kafkajs";
+import { type Admin, type ITopicConfig, type Kafka } from "kafkajs";
 import type {
   IStreamingAdmin,
   StreamingConfig,
@@ -52,7 +52,7 @@ export class StreamingAdmin implements IStreamingAdmin {
 
     // Step 1: Create admin instance (sync operation)
     const instanceResult = this.createAdminInstance();
-    if (instanceResult.tag === "failure") {
+    if (isFailure(instanceResult)) {
       return instanceResult;
     }
 
@@ -144,15 +144,9 @@ export class StreamingAdmin implements IStreamingAdmin {
     }
 
     // Step 1: Validate topic configs (sync operation)
-    const configsResult = this.validateTopicConfigs(topics);
-    if (configsResult.tag === "failure") {
-      return configsResult;
-    }
-
-    const validatedTopics = configsResult.value;
-
-    // Step 2: Create topics using fromAsyncTryCatch
-    return fromAsyncTryCatch(
+    // Step 2: Create topics using flatMap and fromAsyncTryCatch
+    return flatMap(
+      (validatedTopics) => fromAsyncTryCatch(
       async () => {
         opLogger.info("Creating topics", {
           topics: validatedTopics.map((t: TopicConfig) => ({
@@ -197,6 +191,8 @@ export class StreamingAdmin implements IStreamingAdmin {
         });
         return qiError;
       }
+    ),
+    this.validateTopicConfigs(topics)
     );
   }
 
@@ -218,15 +214,9 @@ export class StreamingAdmin implements IStreamingAdmin {
     }
 
     // Step 1: Validate topic names (sync operation)
-    const namesResult = this.validateTopicNames(topicNames);
-    if (namesResult.tag === "failure") {
-      return namesResult;
-    }
-
-    const validatedNames = namesResult.value;
-
-    // Step 2: Delete topics using fromAsyncTryCatch
-    return fromAsyncTryCatch(
+    // Step 2: Delete topics using flatMap and fromAsyncTryCatch
+    return flatMap(
+      (validatedNames) => fromAsyncTryCatch(
       async () => {
         opLogger.info("Deleting topics");
 
@@ -252,6 +242,8 @@ export class StreamingAdmin implements IStreamingAdmin {
         });
         return qiError;
       }
+    ),
+    this.validateTopicNames(topicNames)
     );
   }
 
@@ -323,15 +315,9 @@ export class StreamingAdmin implements IStreamingAdmin {
     }
 
     // Step 1: Validate topic names (sync operation)
-    const topicsResult = this.validateTopicNamesForMetadata(topics);
-    if (topicsResult.tag === "failure") {
-      return topicsResult;
-    }
-
-    const validatedTopics = topicsResult.value;
-
-    // Step 2: Fetch metadata using fromAsyncTryCatch
-    return fromAsyncTryCatch(
+    // Step 2: Fetch metadata using flatMap and fromAsyncTryCatch
+    return flatMap(
+      (validatedTopics) => fromAsyncTryCatch(
       async () => {
         opLogger.debug("Fetching topic metadata");
 
@@ -375,6 +361,8 @@ export class StreamingAdmin implements IStreamingAdmin {
         });
         return qiError;
       }
+    ),
+    this.validateTopicNamesForMetadata(topics)
     );
   }
 
@@ -383,18 +371,17 @@ export class StreamingAdmin implements IStreamingAdmin {
   // ===========================================================================
 
   private createAdminInstance(): Result<void, QiError> {
-    try {
-      this.admin = this.kafka.admin();
-      return Ok(undefined);
-    } catch (error) {
-      return Err(
-        this.createStreamingError(
-          "STREAMING_CONNECTION_FAILED",
-          `Failed to create admin instance: ${error instanceof Error ? error.message : "Unknown error"}`,
-          { operation: "createAdminInstance", error: String(error) }
-        )
-      );
-    }
+    return fromTryCatch(
+      () => {
+        this.admin = this.kafka.admin();
+        return undefined;
+      },
+      (error) => this.createStreamingError(
+        "STREAMING_CONNECTION_FAILED",
+        `Failed to create admin instance: ${error instanceof Error ? error.message : "Unknown error"}`,
+        { operation: "createAdminInstance", error: String(error) }
+      )
+    );
   }
 
   private validateTopicConfigs(
