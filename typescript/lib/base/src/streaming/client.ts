@@ -6,10 +6,10 @@
  * observability and error handling.
  */
 
-import { Err, Ok, type Result, create, flatMap, fromAsyncTryCatch, match } from "@qi/base";
+import { Err, Ok, type Result, create, match, isFailure } from "@qi/base";
 import type { QiError } from "@qi/base";
-import { ConfigBuilder, createLogger, createMemoryCache } from "@qi/core";
-import type { Config, ICache, LogLevel, Logger } from "@qi/core";
+import { createLogger, createMemoryCache } from "@qi/core";
+import type { LogLevel } from "@qi/core";
 import { Kafka } from "kafkajs";
 import { z } from "zod";
 
@@ -131,7 +131,7 @@ export class StreamingClient implements IStreamingClient {
         name: "streaming",
         pretty: config.logging.pretty,
       });
-      if (loggerResult.tag === "failure") {
+      if (isFailure(loggerResult)) {
         return loggerResult;
       }
 
@@ -201,11 +201,14 @@ export class StreamingClient implements IStreamingClient {
 
     const result = await this.initializeInfrastructure();
 
-    if (result.tag === "success") {
-      this.infrastructure = result.value;
-      return Ok(result.value);
-    }
-    return Err(result.error);
+    return match(
+      (infrastructure) => {
+        this.infrastructure = infrastructure;
+        return Ok(infrastructure);
+      },
+      (error) => Err(error),
+      result
+    );
   }
 
   // ===========================================================================
@@ -215,7 +218,7 @@ export class StreamingClient implements IStreamingClient {
   async getProducer(config?: ProducerConfig): Promise<Result<IStreamingProducer, QiError>> {
     // Step 1: Ensure infrastructure (may be async but returns Result synchronously)
     const infrastructureResult = await this.ensureInfrastructure();
-    if (infrastructureResult.tag === "failure") {
+    if (isFailure(infrastructureResult)) {
       return infrastructureResult;
     }
 
@@ -272,7 +275,7 @@ export class StreamingClient implements IStreamingClient {
   async getConsumer(config: ConsumerConfig): Promise<Result<IStreamingConsumer, QiError>> {
     // Step 1: Ensure infrastructure (may be async but returns Result synchronously)
     const infrastructureResult = await this.ensureInfrastructure();
-    if (infrastructureResult.tag === "failure") {
+    if (isFailure(infrastructureResult)) {
       return infrastructureResult;
     }
 
@@ -324,7 +327,7 @@ export class StreamingClient implements IStreamingClient {
   async getAdmin(): Promise<Result<IStreamingAdmin, QiError>> {
     // Step 1: Ensure infrastructure (may be async but returns Result synchronously)
     const infrastructureResult = await this.ensureInfrastructure();
-    if (infrastructureResult.tag === "failure") {
+    if (isFailure(infrastructureResult)) {
       return infrastructureResult;
     }
 
@@ -373,7 +376,7 @@ export class StreamingClient implements IStreamingClient {
     // Disconnect all producers
     for (const [key, producer] of this.producers) {
       const result = await producer.disconnect();
-      if (result.tag === "failure") {
+      if (isFailure(result)) {
         errors.push(result.error);
         opLogger.warn("Producer disconnection failed", {
           producerKey: key,
@@ -386,7 +389,7 @@ export class StreamingClient implements IStreamingClient {
     // Disconnect all consumers
     for (const [key, consumer] of this.consumers) {
       const result = await consumer.disconnect();
-      if (result.tag === "failure") {
+      if (isFailure(result)) {
         errors.push(result.error);
         opLogger.warn("Consumer disconnection failed", {
           groupId: key,
@@ -399,7 +402,7 @@ export class StreamingClient implements IStreamingClient {
     // Disconnect admin client
     if (this.admin) {
       const result = await this.admin.disconnect();
-      if (result.tag === "failure") {
+      if (isFailure(result)) {
         errors.push(result.error);
         opLogger.warn("Admin disconnection failed", { error: result.error.message });
       }
