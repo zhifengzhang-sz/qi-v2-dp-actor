@@ -57,10 +57,10 @@ export abstract class Writer extends BaseActor implements DSL.MarketDataWriter {
   protected abstract writePricesHandler(data: DSL.MarketData<DSL.Price>[]): Promise<Result<void>>;
   protected abstract writeLevel1Handler(data: DSL.MarketData<DSL.Level1>): Promise<Result<void>>;
   protected abstract writeMarketDepthHandler(
-    data: DSL.MarketData<DSL.MarketDepth>
+    data: DSL.MarketData<DSL.MarketDepth>,
   ): Promise<Result<void>>;
   protected abstract writeOHLCVHandler(data: DSL.MarketData<DSL.OHLCV>): Promise<Result<void>>;
   protected abstract writeOHLCVBatchHandler(
-    data: DSL.MarketData<DSL.OHLCV>[]
+    data: DSL.MarketData<DSL.OHLCV>[],
   ): Promise<Result<void>>;
 }

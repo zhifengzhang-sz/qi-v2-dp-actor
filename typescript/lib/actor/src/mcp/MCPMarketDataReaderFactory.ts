@@ -45,7 +45,7 @@ export class MCPMarketDataReaderFactory {
    */
   static createTwelveDataReader(
     context: DSL.DataContext,
-    config: TwelveDataConfig
+    config: TwelveDataConfig,
   ): MCPMarketDataReader {
     const mcpConfig: MCPConnectionConfig = config.enableWebSocket
       ? {
@@ -76,7 +76,7 @@ export class MCPMarketDataReaderFactory {
    */
   static createCoinGeckoReader(
     context: DSL.DataContext,
-    config: CoinGeckoConfig = {}
+    config: CoinGeckoConfig = {},
   ): MCPMarketDataReader {
     const mcpConfig: MCPConnectionConfig = {
       type: "stdio",
@@ -99,7 +99,7 @@ export class MCPMarketDataReaderFactory {
    */
   static createAlphaVantageReader(
     context: DSL.DataContext,
-    config: AlphaVantageConfig
+    config: AlphaVantageConfig,
   ): MCPMarketDataReader {
     const mcpConfig: MCPConnectionConfig = {
       type: "stdio",
@@ -139,7 +139,7 @@ export class MCPMarketDataReaderFactory {
    */
   static createWebSocketStreamingReader(
     context: DSL.DataContext,
-    wsConfig: WebSocketMCPTransportConfig
+    wsConfig: WebSocketMCPTransportConfig,
   ): MCPMarketDataReader {
     const mcpConfig: MCPConnectionConfig = {
       type: "websocket",
@@ -176,19 +176,28 @@ export class MCPMarketDataReaderFactory {
       primary: TwelveDataConfig | CoinGeckoConfig | AlphaVantageConfig | CCXTConfig;
       fallbacks?: (TwelveDataConfig | CoinGeckoConfig | AlphaVantageConfig | CCXTConfig)[];
       type: "twelve-data" | "coingecko" | "alpha-vantage" | "ccxt";
-    }
+    },
   ): MCPMarketDataReader {
     // For now, just return the primary reader
     // In a full implementation, this would create a proxy that manages multiple readers
     switch (configs.type) {
       case "twelve-data":
-        return this.createTwelveDataReader(context, configs.primary as TwelveDataConfig);
+        return MCPMarketDataReaderFactory.createTwelveDataReader(
+          context,
+          configs.primary as TwelveDataConfig,
+        );
       case "coingecko":
-        return this.createCoinGeckoReader(context, configs.primary as CoinGeckoConfig);
+        return MCPMarketDataReaderFactory.createCoinGeckoReader(
+          context,
+          configs.primary as CoinGeckoConfig,
+        );
       case "alpha-vantage":
-        return this.createAlphaVantageReader(context, configs.primary as AlphaVantageConfig);
+        return MCPMarketDataReaderFactory.createAlphaVantageReader(
+          context,
+          configs.primary as AlphaVantageConfig,
+        );
       case "ccxt":
-        return this.createCCXTReader(context, configs.primary as CCXTConfig);
+        return MCPMarketDataReaderFactory.createCCXTReader(context, configs.primary as CCXTConfig);
       default:
         throw new Error(`Unsupported reader type: ${configs.type}`);
     }

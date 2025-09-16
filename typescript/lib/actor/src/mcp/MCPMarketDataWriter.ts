@@ -1,5 +1,5 @@
 import type { QiError, Result } from "@qi/base";
-import { Err, Ok, create } from "@qi/base";
+import { create, Err, Ok } from "@qi/base";
 import type * as DSL from "@qi/dp/dsl";
 import { MCPBaseActor } from "./MCPBaseActor.js";
 
@@ -24,7 +24,7 @@ export class MCPMarketDataWriter extends MCPBaseActor implements DSL.MarketDataW
   async writeMarketDepth(data: DSL.MarketData<DSL.MarketDepth>): Promise<Result<void, QiError>> {
     return this.workflow(
       this.callMCPTool("write_market_depth", { data }),
-      "MARKET_DEPTH_WRITE_ERROR"
+      "MARKET_DEPTH_WRITE_ERROR",
     );
   }
 
@@ -35,11 +35,14 @@ export class MCPMarketDataWriter extends MCPBaseActor implements DSL.MarketDataW
   async writeOHLCVBatch(data: DSL.MarketData<DSL.OHLCV>[]): Promise<Result<void, QiError>> {
     return this.workflow(
       this.callMCPTool("write_ohlcv_batch", { data }),
-      "OHLCV_BATCH_WRITE_ERROR"
+      "OHLCV_BATCH_WRITE_ERROR",
     );
   }
 
-  private async callMCPTool(name: string, args: any): Promise<Result<void, QiError>> {
+  private async callMCPTool(
+    name: string,
+    args: Record<string, unknown>,
+  ): Promise<Result<void, QiError>> {
     const result = await this.callTool(name, args);
     return result.tag === "success"
       ? Ok(undefined)
@@ -48,7 +51,7 @@ export class MCPMarketDataWriter extends MCPBaseActor implements DSL.MarketDataW
             tool: name,
             args,
             originalError: result.error.message,
-          })
+          }),
         );
   }
 }

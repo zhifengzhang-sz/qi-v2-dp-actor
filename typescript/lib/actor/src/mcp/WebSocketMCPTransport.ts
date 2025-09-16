@@ -9,8 +9,6 @@
  */
 
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
-import type { Result } from "@qi/base";
-import { Err, Ok, create } from "@qi/base";
 import { WebSocket } from "ws";
 
 export interface WebSocketMCPTransportConfig {
@@ -25,7 +23,7 @@ export interface WebSocketMCPTransportConfig {
 export class WebSocketMCPTransport implements Transport {
   private ws: WebSocket | null = null;
   private config: Required<WebSocketMCPTransportConfig>;
-  private messageHandlers = new Map<string, (message: any) => void>();
+  private messageHandlers = new Map<string, (message: unknown) => void>();
   private errorHandlers = new Set<(error: Error) => void>();
   private closeHandlers = new Set<() => void>();
   private reconnectTimer: NodeJS.Timeout | null = null;
@@ -77,19 +75,23 @@ export class WebSocketMCPTransport implements Transport {
             }
           } catch (error) {
             const parseError = error instanceof Error ? error : new Error(String(error));
-            this.errorHandlers.forEach((handler) => handler(parseError));
+            for (const handler of this.errorHandlers) {
+              handler(parseError);
+            }
           }
         });
 
         this.ws.on("error", (error) => {
           clearTimeout(timeout);
-          this.errorHandlers.forEach((handler) => handler(error));
+          for (const handler of this.errorHandlers) {
+            handler(error);
+          }
           if (!this.isClosedIntentionally) {
             this.scheduleReconnect();
           }
         });
 
-        this.ws.on("close", (code, reason) => {
+        this.ws.on("close", (code, _reason) => {
           clearTimeout(timeout);
           this.ws = null;
 
@@ -98,7 +100,9 @@ export class WebSocketMCPTransport implements Transport {
             this.scheduleReconnect();
           }
 
-          this.closeHandlers.forEach((handler) => handler());
+          for (const handler of this.closeHandlers) {
+            handler();
+          }
         });
       } catch (error) {
         reject(error instanceof Error ? error : new Error(String(error)));
@@ -109,9 +113,11 @@ export class WebSocketMCPTransport implements Transport {
   private scheduleReconnect(): void {
     if (this.reconnectAttemptCount >= this.config.reconnectAttempts) {
       const maxAttemptsError = new Error(
-        `Maximum reconnection attempts (${this.config.reconnectAttempts}) reached`
+        `Maximum reconnection attempts (${this.config.reconnectAttempts}) reached`,
       );
-      this.errorHandlers.forEach((handler) => handler(maxAttemptsError));
+      for (const handler of this.errorHandlers) {
+        handler(maxAttemptsError);
+      }
       return;
     }
 
@@ -124,11 +130,11 @@ export class WebSocketMCPTransport implements Transport {
 
       try {
         await this.start();
-      } catch (error) {
+      } catch (_error) {
         // Exponential backoff with jitter
         this.currentReconnectDelay = Math.min(
           this.currentReconnectDelay * 2 + Math.random() * 1000,
-          this.config.maxReconnectDelay
+          this.config.maxReconnectDelay,
         );
 
         if (this.reconnectAttemptCount < this.config.reconnectAttempts) {
@@ -138,7 +144,7 @@ export class WebSocketMCPTransport implements Transport {
     }, this.currentReconnectDelay);
   }
 
-  async send(message: any): Promise<void> {
+  async send(message: unknown): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
         reject(new Error("WebSocket not connected"));
@@ -160,7 +166,7 @@ export class WebSocketMCPTransport implements Transport {
     });
   }
 
-  onMessage(handler: (message: any) => void): void {
+  onMessage(handler: (message: unknown) => void): void {
     this.messageHandlers.set("*", handler);
   }
 
@@ -186,12 +192,12 @@ export class WebSocketMCPTransport implements Transport {
           resolve(); // Force resolve after timeout
         }, 5000);
 
-        this.ws!.on("close", () => {
+        this.ws?.on("close", () => {
           clearTimeout(timeout);
           resolve();
         });
 
-        this.ws!.close(1000, "Client closing");
+        this.ws?.close(1000, "Client closing");
       });
     }
   }
@@ -219,7 +225,7 @@ export class WebSocketMCPTransport implements Transport {
   }
 
   // Streaming helpers
-  subscribeToMessages(messageType: string, handler: (message: any) => void): void {
+  subscribeToMessages(messageType: string, handler: (message: unknown) => void): void {
     this.messageHandlers.set(messageType, handler);
   }
 
@@ -232,7 +238,7 @@ export class WebSocketMCPTransport implements Transport {
  * Factory function to create WebSocket MCP transport with common configurations
  */
 export function createWebSocketTransport(
-  config: WebSocketMCPTransportConfig
+  config: WebSocketMCPTransportConfig,
 ): WebSocketMCPTransport {
   return new WebSocketMCPTransport(config);
 }
@@ -242,7 +248,7 @@ export function createWebSocketTransport(
  */
 export function createStreamingTransport(
   serverUrl: string,
-  options?: Partial<WebSocketMCPTransportConfig>
+  options?: Partial<WebSocketMCPTransportConfig>,
 ): WebSocketMCPTransport {
   return new WebSocketMCPTransport({
     url: serverUrl,

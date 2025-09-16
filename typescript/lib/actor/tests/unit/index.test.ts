@@ -1,7 +1,7 @@
 /**
  * Basic actors module test
  */
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 
 describe("Actors Module", () => {
   it("should have basic module structure", () => {

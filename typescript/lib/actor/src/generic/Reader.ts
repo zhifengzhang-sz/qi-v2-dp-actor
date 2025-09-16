@@ -18,7 +18,7 @@ export abstract class Reader extends BaseActor implements DSL.MarketDataReader {
   }
 
   async getCurrentPrices(
-    contexts: DSL.DataContext[]
+    contexts: DSL.DataContext[],
   ): Promise<Result<DSL.MarketData<DSL.Price>[]>> {
     return this.workflow(this.getCurrentPricesHandler(contexts), "PRICES_FETCH_ERROR", {
       operation: "getCurrentPrices",
@@ -35,7 +35,7 @@ export abstract class Reader extends BaseActor implements DSL.MarketDataReader {
 
   async getMarketDepth(
     context: DSL.DataContext,
-    levels: DSL.Levels
+    levels: DSL.Levels,
   ): Promise<Result<DSL.MarketData<DSL.MarketDepth>>> {
     return this.workflow(this.getMarketDepthHandler(context, levels), "MARKET_DEPTH_FETCH_ERROR", {
       operation: "getMarketDepth",
@@ -46,7 +46,7 @@ export abstract class Reader extends BaseActor implements DSL.MarketDataReader {
 
   async getOHLCV(
     context: DSL.DataContext,
-    timeframe: DSL.Timeframe
+    timeframe: DSL.Timeframe,
   ): Promise<Result<DSL.MarketData<DSL.OHLCV>>> {
     return this.workflow(this.getOHLCVHandler(context, timeframe), "OHLCV_FETCH_ERROR", {
       operation: "getOHLCV",
@@ -57,7 +57,7 @@ export abstract class Reader extends BaseActor implements DSL.MarketDataReader {
 
   async getPriceHistory(
     context: DSL.DataContext,
-    range: DSL.DateRange
+    range: DSL.DateRange,
   ): Promise<Result<DSL.MarketData<DSL.Price>[]>> {
     return this.workflow(this.getPriceHistoryHandler(context, range), "PRICE_HISTORY_FETCH_ERROR", {
       operation: "getPriceHistory",
@@ -68,7 +68,7 @@ export abstract class Reader extends BaseActor implements DSL.MarketDataReader {
 
   async getLevel1History(
     context: DSL.DataContext,
-    range: DSL.DateRange
+    range: DSL.DateRange,
   ): Promise<Result<DSL.MarketData<DSL.Level1>[]>> {
     return this.workflow(
       this.getLevel1HistoryHandler(context, range),
@@ -77,14 +77,14 @@ export abstract class Reader extends BaseActor implements DSL.MarketDataReader {
         operation: "getLevel1History",
         context,
         range,
-      }
+      },
     );
   }
 
   async getOHLCVHistory(
     context: DSL.DataContext,
     timeframe: DSL.Timeframe,
-    range: DSL.DateRange
+    range: DSL.DateRange,
   ): Promise<Result<DSL.MarketData<DSL.OHLCV>[]>> {
     return this.workflow(
       this.getOHLCVHistoryHandler(context, timeframe, range),
@@ -94,39 +94,39 @@ export abstract class Reader extends BaseActor implements DSL.MarketDataReader {
         context,
         timeframe,
         range,
-      }
+      },
     );
   }
 
   // Abstract handler methods - concrete classes must implement these with Result<T> patterns
   protected abstract getCurrentPriceHandler(
-    context: DSL.DataContext
+    context: DSL.DataContext,
   ): Promise<Result<DSL.MarketData<DSL.Price>>>;
   protected abstract getCurrentPricesHandler(
-    contexts: DSL.DataContext[]
+    contexts: DSL.DataContext[],
   ): Promise<Result<DSL.MarketData<DSL.Price>[]>>;
   protected abstract getLevel1Handler(
-    context: DSL.DataContext
+    context: DSL.DataContext,
   ): Promise<Result<DSL.MarketData<DSL.Level1>>>;
   protected abstract getMarketDepthHandler(
     context: DSL.DataContext,
-    levels: DSL.Levels
+    levels: DSL.Levels,
   ): Promise<Result<DSL.MarketData<DSL.MarketDepth>>>;
   protected abstract getOHLCVHandler(
     context: DSL.DataContext,
-    timeframe: DSL.Timeframe
+    timeframe: DSL.Timeframe,
   ): Promise<Result<DSL.MarketData<DSL.OHLCV>>>;
   protected abstract getPriceHistoryHandler(
     context: DSL.DataContext,
-    range: DSL.DateRange
+    range: DSL.DateRange,
   ): Promise<Result<DSL.MarketData<DSL.Price>[]>>;
   protected abstract getLevel1HistoryHandler(
     context: DSL.DataContext,
-    range: DSL.DateRange
+    range: DSL.DateRange,
   ): Promise<Result<DSL.MarketData<DSL.Level1>[]>>;
   protected abstract getOHLCVHistoryHandler(
     context: DSL.DataContext,
     timeframe: DSL.Timeframe,
-    range: DSL.DateRange
+    range: DSL.DateRange,
   ): Promise<Result<DSL.MarketData<DSL.OHLCV>[]>>;
 }

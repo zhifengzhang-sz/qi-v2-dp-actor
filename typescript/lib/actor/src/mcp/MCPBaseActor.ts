@@ -4,7 +4,7 @@ import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import type { Result } from "@qi/base";
 import { Err, Ok } from "@qi/base";
 import type * as DSL from "@qi/dp/dsl";
-import { BaseActor } from "./BaseActor.js";
+import { BaseActor } from "../generic/BaseActor.js";
 import {
   WebSocketMCPTransport,
   type WebSocketMCPTransportConfig,
@@ -48,15 +48,15 @@ export abstract class MCPBaseActor extends BaseActor {
         capabilities: {
           sampling: {},
         },
-      }
+      },
     );
 
     this.initializeTransport();
   }
 
   // Legacy constructor for backwards compatibility
-  static createWithCommand(context: DSL.DataContext, serverCommand: string[]): MCPBaseActor {
-    const config: MCPConnectionConfig = {
+  static createWithCommand(_context: DSL.DataContext, serverCommand: string[]): MCPBaseActor {
+    const _config: MCPConnectionConfig = {
       type: "stdio",
       stdio: {
         command: serverCommand[0] || "",
@@ -141,7 +141,10 @@ export abstract class MCPBaseActor extends BaseActor {
   /**
    * Call a tool on the MCP server
    */
-  protected async callTool(name: string, args: any): Promise<Result<any, Error>> {
+  protected async callTool(
+    name: string,
+    args: Record<string, unknown>,
+  ): Promise<Result<unknown, Error>> {
     try {
       if (!this.isConnected) {
         await this.connect();
@@ -161,7 +164,7 @@ export abstract class MCPBaseActor extends BaseActor {
   /**
    * List available tools from the MCP server
    */
-  protected async listTools(): Promise<Result<any[], Error>> {
+  protected async listTools(): Promise<Result<unknown[], Error>> {
     try {
       if (!this.isConnected) {
         await this.connect();

@@ -28,7 +28,7 @@ export abstract class StreamingWriter extends BaseActor implements DSL.Streaming
 
   async startMarketDepthStream(
     context: DSL.DataContext,
-    levels: DSL.Levels
+    levels: DSL.Levels,
   ): Promise<Result<DSL.MarketDepthStream>> {
     return this.workflow(
       this.startMarketDepthStreamHandler(context, levels),
@@ -37,13 +37,13 @@ export abstract class StreamingWriter extends BaseActor implements DSL.Streaming
         operation: "startMarketDepthStream",
         context,
         levels,
-      }
+      },
     );
   }
 
   async startOHLCVStream(
     context: DSL.DataContext,
-    timeframe: DSL.Timeframe
+    timeframe: DSL.Timeframe,
   ): Promise<Result<DSL.OHLCVStream>> {
     return this.workflow(
       this.startOHLCVStreamHandler(context, timeframe),
@@ -52,23 +52,23 @@ export abstract class StreamingWriter extends BaseActor implements DSL.Streaming
         operation: "startOHLCVStream",
         context,
         timeframe,
-      }
+      },
     );
   }
 
   // Abstract handler methods - concrete classes must implement these with Result<T> patterns
   protected abstract startPriceStreamHandler(
-    context: DSL.DataContext
+    context: DSL.DataContext,
   ): Promise<Result<DSL.PriceStream>>;
   protected abstract startLevel1StreamHandler(
-    context: DSL.DataContext
+    context: DSL.DataContext,
   ): Promise<Result<DSL.Level1Stream>>;
   protected abstract startMarketDepthStreamHandler(
     context: DSL.DataContext,
-    levels: DSL.Levels
+    levels: DSL.Levels,
   ): Promise<Result<DSL.MarketDepthStream>>;
   protected abstract startOHLCVStreamHandler(
     context: DSL.DataContext,
-    timeframe: DSL.Timeframe
+    timeframe: DSL.Timeframe,
   ): Promise<Result<DSL.OHLCVStream>>;
 }

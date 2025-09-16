@@ -40,21 +40,21 @@ export abstract class HistoricalWriter extends BaseActor implements DSL.Historic
       {
         operation: "writeMarketDepthHistory",
         dataCount: data.length,
-      }
+      },
     );
   }
 
   // Abstract handler methods - concrete classes must implement these with Result<T> patterns
   protected abstract writePriceHistoryHandler(
-    data: DSL.MarketData<DSL.Price>[]
+    data: DSL.MarketData<DSL.Price>[],
   ): Promise<Result<void>>;
   protected abstract writeLevel1HistoryHandler(
-    data: DSL.MarketData<DSL.Level1>[]
+    data: DSL.MarketData<DSL.Level1>[],
   ): Promise<Result<void>>;
   protected abstract writeOHLCVHistoryHandler(
-    data: DSL.MarketData<DSL.OHLCV>[]
+    data: DSL.MarketData<DSL.OHLCV>[],
   ): Promise<Result<void>>;
   protected abstract writeMarketDepthHistoryHandler(
-    data: DSL.MarketData<DSL.MarketDepth>[]
+    data: DSL.MarketData<DSL.MarketDepth>[],
   ): Promise<Result<void>>;
 }

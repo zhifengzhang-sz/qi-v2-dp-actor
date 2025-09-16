@@ -14,7 +14,7 @@ export abstract class StreamingReader extends BaseActor implements DSL.Streaming
   // StreamingMarketDataReader Contract (DSL Part II) - implemented with handler delegation
   async subscribePriceStream(
     context: DSL.DataContext,
-    callback: (data: DSL.MarketData<DSL.Price>) => void
+    callback: (data: DSL.MarketData<DSL.Price>) => void,
   ): Promise<Result<DSL.Subscription>> {
     return this.workflow(
       this.subscribePriceStreamHandler(context, callback),
@@ -22,13 +22,13 @@ export abstract class StreamingReader extends BaseActor implements DSL.Streaming
       {
         operation: "subscribePriceStream",
         context,
-      }
+      },
     );
   }
 
   async subscribeLevel1Stream(
     context: DSL.DataContext,
-    callback: (data: DSL.MarketData<DSL.Level1>) => void
+    callback: (data: DSL.MarketData<DSL.Level1>) => void,
   ): Promise<Result<DSL.Subscription>> {
     return this.workflow(
       this.subscribeLevel1StreamHandler(context, callback),
@@ -36,14 +36,14 @@ export abstract class StreamingReader extends BaseActor implements DSL.Streaming
       {
         operation: "subscribeLevel1Stream",
         context,
-      }
+      },
     );
   }
 
   async subscribeMarketDepthStream(
     context: DSL.DataContext,
     levels: DSL.Levels,
-    callback: (data: DSL.MarketData<DSL.MarketDepth>) => void
+    callback: (data: DSL.MarketData<DSL.MarketDepth>) => void,
   ): Promise<Result<DSL.Subscription>> {
     return this.workflow(
       this.subscribeMarketDepthStreamHandler(context, levels, callback),
@@ -52,14 +52,14 @@ export abstract class StreamingReader extends BaseActor implements DSL.Streaming
         operation: "subscribeMarketDepthStream",
         context,
         levels,
-      }
+      },
     );
   }
 
   async subscribeOHLCVStream(
     context: DSL.DataContext,
     timeframe: DSL.Timeframe,
-    callback: (data: DSL.MarketData<DSL.OHLCV>) => void
+    callback: (data: DSL.MarketData<DSL.OHLCV>) => void,
   ): Promise<Result<DSL.Subscription>> {
     return this.workflow(
       this.subscribeOHLCVStreamHandler(context, timeframe, callback),
@@ -68,7 +68,7 @@ export abstract class StreamingReader extends BaseActor implements DSL.Streaming
         operation: "subscribeOHLCVStream",
         context,
         timeframe,
-      }
+      },
     );
   }
 
@@ -82,21 +82,21 @@ export abstract class StreamingReader extends BaseActor implements DSL.Streaming
   // Abstract handler methods - concrete classes must implement these with Result<T> patterns
   protected abstract subscribePriceStreamHandler(
     context: DSL.DataContext,
-    callback: (data: DSL.MarketData<DSL.Price>) => void
+    callback: (data: DSL.MarketData<DSL.Price>) => void,
   ): Promise<Result<DSL.Subscription>>;
   protected abstract subscribeLevel1StreamHandler(
     context: DSL.DataContext,
-    callback: (data: DSL.MarketData<DSL.Level1>) => void
+    callback: (data: DSL.MarketData<DSL.Level1>) => void,
   ): Promise<Result<DSL.Subscription>>;
   protected abstract subscribeMarketDepthStreamHandler(
     context: DSL.DataContext,
     levels: DSL.Levels,
-    callback: (data: DSL.MarketData<DSL.MarketDepth>) => void
+    callback: (data: DSL.MarketData<DSL.MarketDepth>) => void,
   ): Promise<Result<DSL.Subscription>>;
   protected abstract subscribeOHLCVStreamHandler(
     context: DSL.DataContext,
     timeframe: DSL.Timeframe,
-    callback: (data: DSL.MarketData<DSL.OHLCV>) => void
+    callback: (data: DSL.MarketData<DSL.OHLCV>) => void,
   ): Promise<Result<DSL.Subscription>>;
   protected abstract unsubscribeHandler(subscription: DSL.Subscription): Promise<Result<void>>;
 }

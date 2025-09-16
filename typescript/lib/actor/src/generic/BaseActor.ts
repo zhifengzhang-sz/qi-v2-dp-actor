@@ -1,4 +1,4 @@
-import { Err, Ok, type Result, create, flatMap } from "@qi/base";
+import { create, Err, flatMap, Ok, type Result } from "@qi/base";
 import type * as DSL from "@qi/dp/dsl";
 
 /**
@@ -14,7 +14,7 @@ export abstract class BaseActor implements DSL.MarketDataContextManager {
   async createContext(
     market: DSL.Market,
     exchange: DSL.Exchange,
-    instrument: DSL.Instrument
+    instrument: DSL.Instrument,
   ): Promise<Result<DSL.DataContext>> {
     // Simple context creation - validate inputs then create
     if (!market || !exchange || !instrument) {
@@ -23,7 +23,7 @@ export abstract class BaseActor implements DSL.MarketDataContextManager {
           hasMarket: !!market,
           hasExchange: !!exchange,
           hasInstrument: !!instrument,
-        })
+        }),
       );
     }
 
@@ -42,13 +42,13 @@ export abstract class BaseActor implements DSL.MarketDataContextManager {
 
   async updateMarket(
     context: DSL.DataContext,
-    market: DSL.Market
+    market: DSL.Market,
   ): Promise<Result<DSL.DataContext>> {
     if (!market) {
       return Err(
         create("CONTEXT_UPDATE_ERROR", "Market cannot be null or undefined", "VALIDATION", {
           originalContext: context,
-        })
+        }),
       );
     }
     return Ok({ ...context, market });
@@ -56,13 +56,13 @@ export abstract class BaseActor implements DSL.MarketDataContextManager {
 
   async updateExchange(
     context: DSL.DataContext,
-    exchange: DSL.Exchange
+    exchange: DSL.Exchange,
   ): Promise<Result<DSL.DataContext>> {
     if (!exchange) {
       return Err(
         create("CONTEXT_UPDATE_ERROR", "Exchange cannot be null or undefined", "VALIDATION", {
           originalContext: context,
-        })
+        }),
       );
     }
     return Ok({ ...context, exchange });
@@ -70,13 +70,13 @@ export abstract class BaseActor implements DSL.MarketDataContextManager {
 
   async updateInstrument(
     context: DSL.DataContext,
-    instrument: DSL.Instrument
+    instrument: DSL.Instrument,
   ): Promise<Result<DSL.DataContext>> {
     if (!instrument) {
       return Err(
         create("CONTEXT_UPDATE_ERROR", "Instrument cannot be null or undefined", "VALIDATION", {
           originalContext: context,
-        })
+        }),
       );
     }
     return Ok({ ...context, instrument });
@@ -93,8 +93,8 @@ export abstract class BaseActor implements DSL.MarketDataContextManager {
             hasMarket: !!context.market,
             hasExchange: !!context.exchange,
             hasInstrument: !!context.instrument,
-          }
-        )
+          },
+        ),
       );
     }
     return Ok(undefined);
@@ -104,7 +104,7 @@ export abstract class BaseActor implements DSL.MarketDataContextManager {
   protected async workflow<T>(
     handlerPromise: Promise<Result<T>>,
     errorType: string,
-    operationContext: Record<string, unknown> = {}
+    operationContext: Record<string, unknown> = {},
   ): Promise<Result<T>> {
     return flatMap(
       (result) => Ok(result), // Pass through successful results
@@ -117,9 +117,9 @@ export abstract class BaseActor implements DSL.MarketDataContextManager {
             operationContext,
             originalError: errorMessage,
             timestamp: new Date().toISOString(),
-          })
+          }),
         );
-      })
+      }),
     );
   }
 }

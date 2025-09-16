@@ -3,6 +3,10 @@
   "version": "ts-0.7.0-dev",
   "description": "Data Processing Actors - Market data DSL and actor system",
   "type": "module",
+  "workspaces": [
+    "lib/*",
+    "../../qi-v2-qicore/typescript/lib/*"
+  ],
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -22,10 +26,10 @@
       "import": "./lib/md/dist/index.js",
       "require": "./lib/md/dist/index.cjs"
     },
-    "./actors": {
-      "types": "./lib/actors/dist/index.d.ts",
-      "import": "./lib/actors/dist/index.js",
-      "require": "./lib/actors/dist/index.cjs"
+    "./actor": {
+      "types": "./lib/actor/dist/index.d.ts",
+      "import": "./lib/actor/dist/index.js",
+      "require": "./lib/actor/dist/index.cjs"
     },
     "./connectors": {
       "types": "./lib/connectors/dist/index.d.ts",
@@ -59,10 +63,10 @@
   "scripts": {
     "dev": "bun run lib/src/index.ts",
     "build": "bun run build:modules && tsup lib/src/index.ts --format cjs,esm --dts --clean",
-    "build:modules": "bun run build:dsl && bun run build:md && bun run build:actors && bun run build:base && bun run build:generic && bun run build:mcp && bun run build:connectors && bun run build:utils",
+    "build:modules": "bun run build:dsl && bun run build:md && bun run build:actor && bun run build:base && bun run build:generic && bun run build:mcp && bun run build:connectors && bun run build:utils",
     "build:dsl": "cd lib/dsl && bun run build",
     "build:md": "cd lib/md && bun run build",
-    "build:actors": "cd lib/actors && bun run build",
+    "build:actor": "cd lib/actor && bun run build",
     "build:base": "cd lib/base && bun run build",
     "build:generic": "cd lib/generic && bun run build",
     "build:mcp": "cd lib/mcp && bun run build",
@@ -78,19 +82,19 @@
     "bench": "vitest bench",
     "format": "biome check . --write",
     "format:check": "biome check .",
-    "lint": "biome lint . && eslint lib/dsl/src lib/actors/src --ext .ts,.tsx",
+    "lint": "biome lint . && eslint lib/dsl/src lib/actor/src --ext .ts,.tsx",
     "lint:dsl": "eslint lib/dsl/src --ext .ts,.tsx",
     "lint:md": "eslint lib/md/src --ext .ts,.tsx",
     "lint:base": "eslint lib/base/src --ext .ts,.tsx",
     "lint:utils": "eslint lib/utils/src --ext .ts,.tsx",
-    "lint:actors": "eslint lib/actors/src --ext .ts,.tsx",
+    "lint:actor": "eslint lib/actor/src --ext .ts,.tsx",
     "lint:generic": "eslint lib/generic/src --ext .ts,.tsx",
     "lint:mcp": "eslint lib/mcp/src --ext .ts,.tsx",
-    "lint:fix": "eslint lib/dsl/src lib/actors/src --ext .ts,.tsx --fix",
+    "lint:fix": "eslint lib/dsl/src lib/actor/src --ext .ts,.tsx --fix",
     "typecheck": "tsc --noEmit",
     "docs": "typedoc lib/src/index.ts --out docs/api",
     "clean": "rimraf dist docs/api && bun run clean:modules",
-    "clean:modules": "cd lib/dsl && bun run clean && cd ../md && bun run clean && cd ../actors && bun run clean && cd ../connectors && bun run clean && cd ../utils && bun run clean",
+    "clean:modules": "cd lib/dsl && bun run clean && cd ../md && bun run clean && cd ../actor && bun run clean && cd ../connectors && bun run clean && cd ../utils && bun run clean",
     "start:mcp": "bun run dist/bin/mcp-server-simple.js",
     "dev:mcp": "bun run lib/src/bin/mcp-server-simple.ts",
     "check": "bun run typecheck && bun run format && bun run test",

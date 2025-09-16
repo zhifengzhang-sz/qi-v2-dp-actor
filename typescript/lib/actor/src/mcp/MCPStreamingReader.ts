@@ -1,5 +1,5 @@
 import type { QiError, Result } from "@qi/base";
-import { Err, Ok, create } from "@qi/base";
+import { create, Err, Ok } from "@qi/base";
 import type * as DSL from "@qi/dp/dsl";
 import { MCPBaseActor } from "./MCPBaseActor.js";
 
@@ -11,43 +11,43 @@ import { MCPBaseActor } from "./MCPBaseActor.js";
 export class MCPStreamingReader extends MCPBaseActor implements DSL.StreamingMarketDataReader {
   async subscribePriceStream(
     context: DSL.DataContext,
-    callback: (data: DSL.MarketData<DSL.Price>) => void
+    callback: (data: DSL.MarketData<DSL.Price>) => void,
   ): Promise<Result<DSL.Subscription, QiError>> {
     return this.workflow(
       this.callMCPTool("subscribe_price_stream", { context, callback }),
-      "PRICE_STREAM_SUBSCRIBE_ERROR"
+      "PRICE_STREAM_SUBSCRIBE_ERROR",
     );
   }
 
   async subscribeLevel1Stream(
     context: DSL.DataContext,
-    callback: (data: DSL.MarketData<DSL.Level1>) => void
+    callback: (data: DSL.MarketData<DSL.Level1>) => void,
   ): Promise<Result<DSL.Subscription, QiError>> {
     return this.workflow(
       this.callMCPTool("subscribe_level1_stream", { context, callback }),
-      "LEVEL1_STREAM_SUBSCRIBE_ERROR"
+      "LEVEL1_STREAM_SUBSCRIBE_ERROR",
     );
   }
 
   async subscribeMarketDepthStream(
     context: DSL.DataContext,
     levels: DSL.Levels,
-    callback: (data: DSL.MarketData<DSL.MarketDepth>) => void
+    callback: (data: DSL.MarketData<DSL.MarketDepth>) => void,
   ): Promise<Result<DSL.Subscription, QiError>> {
     return this.workflow(
       this.callMCPTool("subscribe_market_depth_stream", { context, levels, callback }),
-      "MARKET_DEPTH_STREAM_SUBSCRIBE_ERROR"
+      "MARKET_DEPTH_STREAM_SUBSCRIBE_ERROR",
     );
   }
 
   async subscribeOHLCVStream(
     context: DSL.DataContext,
     timeframe: DSL.Timeframe,
-    callback: (data: DSL.MarketData<DSL.OHLCV>) => void
+    callback: (data: DSL.MarketData<DSL.OHLCV>) => void,
   ): Promise<Result<DSL.Subscription, QiError>> {
     return this.workflow(
       this.callMCPTool("subscribe_ohlcv_stream", { context, timeframe, callback }),
-      "OHLCV_STREAM_SUBSCRIBE_ERROR"
+      "OHLCV_STREAM_SUBSCRIBE_ERROR",
     );
   }
 
@@ -55,16 +55,19 @@ export class MCPStreamingReader extends MCPBaseActor implements DSL.StreamingMar
     return this.workflow(this.callMCPTool("unsubscribe", { subscription }), "UNSUBSCRIBE_ERROR");
   }
 
-  private async callMCPTool(name: string, args: any): Promise<Result<any, QiError>> {
+  private async callMCPTool<T>(
+    name: string,
+    args: Record<string, unknown>,
+  ): Promise<Result<T, QiError>> {
     const result = await this.callTool(name, args);
     return result.tag === "success"
-      ? Ok(result.value)
+      ? Ok(result.value as T)
       : Err(
           create("MCP_TOOL_ERROR", `MCP tool call failed: ${result.error.message}`, "SYSTEM", {
             tool: name,
             args,
             originalError: result.error.message,
-          })
+          }),
         );
   }
 }
