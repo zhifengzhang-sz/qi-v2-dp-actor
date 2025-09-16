@@ -86,7 +86,13 @@ export class StreamingClient implements IStreamingClient {
       return connectorResult;
     }
 
-    const connector = connectorResult.value;
+    const connector = match(
+      (conn) => conn,
+      (error) => {
+        throw error;
+      },
+      connectorResult
+    );
     const producerKey = JSON.stringify(config || {});
 
     if (this.producers.has(producerKey)) {
@@ -145,7 +151,13 @@ export class StreamingClient implements IStreamingClient {
       return connectorResult;
     }
 
-    const connector = connectorResult.value;
+    const connector = match(
+      (conn) => conn,
+      (error) => {
+        throw error;
+      },
+      connectorResult
+    );
     const consumerKey = config.groupId;
 
     if (this.consumers.has(consumerKey)) {
@@ -198,7 +210,13 @@ export class StreamingClient implements IStreamingClient {
       return connectorResult;
     }
 
-    const connector = connectorResult.value;
+    const connector = match(
+      (conn) => conn,
+      (error) => {
+        throw error;
+      },
+      connectorResult
+    );
 
     if (this.admin) {
       this.logger?.debug("Returning existing admin client");
@@ -338,20 +356,38 @@ export class StreamingClient implements IStreamingClient {
     const adminResult = await this.getAdmin();
 
     if (isFailure(adminResult)) {
-      this.logger?.warn("Health check failed - could not get admin client", {
-        error: adminResult.error.message,
-      });
+      match(
+        () => {},
+        (error) => {
+          this.logger?.warn("Health check failed - could not get admin client", {
+            error: error.message,
+          });
+        },
+        adminResult
+      );
       return Ok(false);
     }
 
-    const admin = adminResult.value;
+    const admin = match(
+      (adm) => adm,
+      (error) => {
+        throw error;
+      },
+      adminResult
+    );
 
     // Connect to admin
     const connectResult = await admin.connect();
     if (isFailure(connectResult)) {
-      this.logger?.warn("Health check failed - could not connect admin", {
-        error: connectResult.error.message,
-      });
+      match(
+        () => {},
+        (error) => {
+          this.logger?.warn("Health check failed - could not connect admin", {
+            error: error.message,
+          });
+        },
+        connectResult
+      );
       return Ok(false);
     }
 

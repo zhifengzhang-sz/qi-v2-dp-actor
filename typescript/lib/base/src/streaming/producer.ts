@@ -5,7 +5,7 @@
  * infrastructure integration for proper observability and error handling.
  */
 
-import { Err, Ok, type Result, create, flatMap, fromAsyncTryCatch, isFailure } from "@qi/base";
+import { Err, Ok, type Result, create, fromAsyncTryCatch, fromTryCatch, isFailure, match } from "@qi/base";
 import type { QiError } from "@qi/base";
 import type { Logger } from "@qi/core";
 import type { Kafka, Producer } from "kafkajs";
@@ -321,24 +321,22 @@ export class StreamingProducer implements IStreamingProducer {
   // ===========================================================================
 
   private createProducerInstance(): Result<void, QiError> {
-    try {
-      this.producer = this.kafka.producer({
-        maxInFlightRequests: this.producerConfig.maxInFlightRequests ?? 1,
-        idempotent: this.producerConfig.idempotent ?? true,
-        transactionTimeout: this.producerConfig.transactionTimeout ?? 30000,
-        allowAutoTopicCreation: this.producerConfig.allowAutoTopicCreation ?? false,
-      });
-
-      return Ok(undefined);
-    } catch (error) {
-      return Err(
-        this.createStreamingError(
-          "STREAMING_CONNECTION_FAILED",
-          `Failed to create producer instance: ${error instanceof Error ? error.message : "Unknown error"}`,
-          { operation: "createProducerInstance", error: String(error) },
-        ),
-      );
-    }
+    return fromTryCatch(
+      () => {
+        this.producer = this.kafka.producer({
+          maxInFlightRequests: this.producerConfig.maxInFlightRequests ?? 1,
+          idempotent: this.producerConfig.idempotent ?? true,
+          transactionTimeout: this.producerConfig.transactionTimeout ?? 30000,
+          allowAutoTopicCreation: this.producerConfig.allowAutoTopicCreation ?? false,
+        });
+        return undefined;
+      },
+      (error) => this.createStreamingError(
+        "STREAMING_CONNECTION_FAILED",
+        `Failed to create producer instance: ${error instanceof Error ? error.message : "Unknown error"}`,
+        { operation: "createProducerInstance", error: String(error) },
+      )
+    );
   }
 
   private validateMessage(message: StreamingMessage): Result<StreamingMessage, QiError> {
@@ -393,7 +391,7 @@ export class StreamingProducer implements IStreamingProducer {
         );
       }
       const messageResult = this.validateMessage(message);
-      if (messageResult.tag === "failure") {
+      if (isFailure(messageResult)) {
         return Err(
           this.createStreamingError(
             "STREAMING_INVALID_MESSAGE",

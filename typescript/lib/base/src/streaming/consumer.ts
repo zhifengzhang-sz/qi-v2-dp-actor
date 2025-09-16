@@ -5,7 +5,7 @@
  * infrastructure integration for proper observability and error handling.
  */
 
-import { Err, Ok, type Result, create, fromAsyncTryCatch, fromTryCatch, isFailure } from "@qi/base";
+import { Err, Ok, type Result, create, fromAsyncTryCatch, fromTryCatch, isFailure, match } from "@qi/base";
 import type { QiError } from "@qi/base";
 import type { Logger } from "@qi/core";
 import type {
@@ -163,7 +163,13 @@ export class StreamingConsumer implements IStreamingConsumer {
       return configResult;
     }
 
-    const validatedConfig = configResult.value;
+    const validatedConfig = match(
+      (config) => config,
+      (error) => {
+        throw error;
+      },
+      configResult
+    );
 
     // Step 2: Subscribe using fromAsyncTryCatch
     return fromAsyncTryCatch(
@@ -270,35 +276,57 @@ export class StreamingConsumer implements IStreamingConsumer {
                 : {},
             };
 
-            try {
-              // Call the original handler if provided, transforming kafkajs payload to our format
-              if (config.eachMessage) {
-                await config.eachMessage({
+            const processingResult = await fromAsyncTryCatch(
+              async () => {
+                // Call the original handler if provided, transforming kafkajs payload to our format
+                if (config.eachMessage) {
+                  await config.eachMessage({
+                    topic: payload.topic,
+                    partition: payload.partition,
+                    message: {
+                      key: payload.message.key,
+                      value: payload.message.value,
+                      timestamp: payload.message.timestamp || Date.now().toString(),
+                      offset: payload.message.offset,
+                      headers: payload.message.headers as
+                        | Record<string, Buffer | string | undefined>
+                        | undefined,
+                    },
+                  });
+                }
+                return undefined;
+              },
+              (error) => create(
+                "STREAMING_MESSAGE_PROCESSING_FAILED",
+                `Message processing failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+                "BUSINESS",
+                {
+                  operation: "processMessage",
                   topic: payload.topic,
                   partition: payload.partition,
-                  message: {
-                    key: payload.message.key,
-                    value: payload.message.value,
-                    timestamp: payload.message.timestamp || Date.now().toString(),
-                    offset: payload.message.offset,
-                    headers: payload.message.headers as
-                      | Record<string, Buffer | string | undefined>
-                      | undefined,
-                  },
-                });
-              }
+                  offset: payload.message.offset,
+                  error: String(error),
+                }
+              )
+            );
 
-              messageLogger.debug("Message processed successfully");
-            } catch (error) {
-              messageLogger.error("Message processing failed", new Error("Processing failed"), {
-                operation: "processMessage",
-                topic: payload.topic,
-                partition: payload.partition,
-                offset: payload.message.offset,
-                error: String(error),
-              });
-              throw error; // Re-throw to let KafkaJS handle retry logic
-            }
+            match(
+              () => {
+                messageLogger.debug("Message processed successfully");
+              },
+              (error) => {
+                messageLogger.error("Message processing failed", undefined, {
+                  operation: "processMessage",
+                  topic: payload.topic,
+                  partition: payload.partition,
+                  offset: payload.message.offset,
+                  errorCode: error.code,
+                  errorCategory: error.category,
+                  errorMessage: error.message,
+                });
+              },
+              processingResult
+            );
           },
         };
 
@@ -421,26 +449,24 @@ export class StreamingConsumer implements IStreamingConsumer {
   // ===========================================================================
 
   private createConsumerInstance(): Result<void, QiError> {
-    try {
-      this.consumer = this.kafka.consumer({
-        groupId: this.consumerConfig.groupId,
-        sessionTimeout: this.consumerConfig.sessionTimeout ?? 30000,
-        heartbeatInterval: this.consumerConfig.heartbeatInterval ?? 3000,
-        maxBytesPerPartition: this.consumerConfig.maxBytesPerPartition ?? 1048576, // 1MB
-        minBytes: this.consumerConfig.minBytes ?? 1,
-        maxWaitTimeInMs: this.consumerConfig.maxWaitTimeInMs ?? 5000,
-      });
-
-      return Ok(undefined);
-    } catch (error) {
-      return Err(
-        this.createStreamingError(
-          "STREAMING_CONNECTION_FAILED",
-          `Failed to create consumer instance: ${error instanceof Error ? error.message : "Unknown error"}`,
-          { operation: "createConsumerInstance", error: String(error) },
-        ),
-      );
-    }
+    return fromTryCatch(
+      () => {
+        this.consumer = this.kafka.consumer({
+          groupId: this.consumerConfig.groupId,
+          sessionTimeout: this.consumerConfig.sessionTimeout ?? 30000,
+          heartbeatInterval: this.consumerConfig.heartbeatInterval ?? 3000,
+          maxBytesPerPartition: this.consumerConfig.maxBytesPerPartition ?? 1048576, // 1MB
+          minBytes: this.consumerConfig.minBytes ?? 1,
+          maxWaitTimeInMs: this.consumerConfig.maxWaitTimeInMs ?? 5000,
+        });
+        return undefined;
+      },
+      (error) => this.createStreamingError(
+        "STREAMING_CONNECTION_FAILED",
+        `Failed to create consumer instance: ${error instanceof Error ? error.message : "Unknown error"}`,
+        { operation: "createConsumerInstance", error: String(error) },
+      )
+    );
   }
 
   private validateSubscriptionConfig(

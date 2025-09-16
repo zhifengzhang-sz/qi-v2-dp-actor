@@ -5,7 +5,7 @@
  * for optimal performance and Result<T> composition with @qi/dp/md smart constructors.
  */
 
-import { Err, Ok, type Result, create, match } from "@qi/base";
+import { Err, Ok, type Result, create, match, isFailure, fromAsyncTryCatch } from "@qi/base";
 import type { QiError } from "@qi/base";
 import { createLogger } from "@qi/core";
 import type { Logger } from "@qi/core";
@@ -52,7 +52,7 @@ export class RedpandaReader extends Reader {
 
   async connect(): Promise<Result<void, QiError>> {
     const loggerInit = await this.initializeLogger();
-    if (loggerInit.tag === "failure") {
+    if (isFailure(loggerInit)) {
       return loggerInit;
     }
 
@@ -62,37 +62,53 @@ export class RedpandaReader extends Reader {
       logger: this.logger!,
     });
 
-    if (connectorResult.tag === "failure") {
-      this.logger!.error("Failed to create streaming connector", {
-        message: connectorResult.error.message,
-      });
-      return Err(
-        create(
-          "READER_CONNECTION_ERROR",
-          `Failed to create connector: ${connectorResult.error.message}`,
-          "SYSTEM"
-        )
-      );
-    }
+    return match(
+      (connector) => {
+        this.connector = connector;
+        return this.createConsumer();
+      },
+      (error) => {
+        this.logger!.error("Failed to create streaming connector", {
+          message: error.message,
+        });
+        return Err(
+          create(
+            "READER_CONNECTION_ERROR",
+            `Failed to create connector: ${error.message}`,
+            "SYSTEM"
+          )
+        );
+      },
+      connectorResult
+    );
+  }
 
-    this.connector = connectorResult.value;
+  private async createConsumer(): Promise<Result<void, QiError>> {
 
     // Create consumer
-    const consumerResult = await this.connector.createConsumer(this.config);
-    if (consumerResult.tag === "failure") {
-      this.logger!.error("Failed to create consumer", {
-        message: consumerResult.error.message,
-      });
-      return Err(
-        create(
-          "READER_CONNECTION_ERROR",
-          `Failed to create consumer: ${consumerResult.error.message}`,
-          "SYSTEM"
-        )
-      );
-    }
+    const consumerResult = await this.connector!.createConsumer(this.config);
+    return match(
+      (consumer) => {
+        this.consumer = consumer;
+        return this.connectConsumer();
+      },
+      (error) => {
+        this.logger!.error("Failed to create consumer", {
+          message: error.message,
+        });
+        return Err(
+          create(
+            "READER_CONNECTION_ERROR",
+            `Failed to create consumer: ${error.message}`,
+            "SYSTEM"
+          )
+        );
+      },
+      consumerResult
+    );
+  }
 
-    this.consumer = consumerResult.value;
+  private async connectConsumer(): Promise<Result<void, QiError>> {
 
     // Connect consumer
     const connectResult = await this.consumer.connect();
